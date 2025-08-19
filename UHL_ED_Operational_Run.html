@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIDCARE © Operational — UHL ED Attendees</title>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+  <style>
+    :root { --gap: 14px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; background:#fff; }
+    header { padding: 16px 18px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    header h1 { margin:0; font-size:20px; letter-spacing:.2px; font-weight:600; }
+    .toolbar { display:flex; gap:8px; align-items:center; }
+    .btn { padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.05); font-weight:600; }
+    .btn:disabled { opacity:.55; cursor:default; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+    .controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--gap); margin: 10px 0 12px; }
+    .control { background:#fafafa; border:1px solid #eee; border-radius:12px; padding:10px 12px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+    .control label { display:block; font-weight:600; font-size:12px; margin-bottom:6px; }
+    .control input[type=range], .control select { width:100%; }
+    .val { font-variant-numeric: tabular-nums; font-size:12px; color:#444; margin-top:2px; }
+    .disabledSelect { opacity:.45; pointer-events:none; filter:grayscale(20%); }
+
+    .note { font-size:12px; color:#444; margin: 6px 2px 12px; line-height:1.35; background:#fcfcfc; border:1px dashed #eee; border-radius:10px; padding:10px 12px; }
+
+    .legend-note { font-size:12px; color:#444; margin: 4px 0 10px; }
+    .sw { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-right:6px; }
+    .sw.red{background:#d62728;} .sw.blue{background:#1f77b4;} .sw.green{background:#2ca02c;}
+
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    @media (max-width: 980px){ .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>UHL ED Attendees — Operational</h1>
+    <div class="toolbar">
+      <button id="run" class="btn">▶ Run</button>
+      <button id="pause" class="btn" disabled>⏸ Pause</button>
+      <button id="reset" class="btn">⟲ Reset</button>
+      <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2014</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control">
+        <label>Annual ED growth rate (CAGR)</label>
+        <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
+        <div class="val"><span id="growthVal">4.60%</span> / yr</div>
+      </div>
+      <div class="control">
+        <label>Initial attendees (2014)</label>
+        <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
+        <div class="val"><span id="initialVal">55,502</span> people</div>
+      </div>
+      <div class="control">
+        <label>Conversion rate (ED → trolley)</label>
+        <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
+        <div class="val"><span id="convVal">33.3%</span></div>
+      </div>
+      <div class="control">
+        <label>Average presentations per day</label>
+        <input id="present" type="range" min="0" max="500" step="1" value="230">
+        <div class="val"><span id="presentVal">230</span> per day</div>
+      </div>
+      <div class="control">
+        <label>Average length of stay (days)</label>
+        <input id="los" type="range" min="0" max="60" step="0.1" value="5">
+        <div class="val"><span id="losVal">5.0</span> days</div>
+        <div style="margin-top:6px;">
+          <input id="applyLOS" type="checkbox"> <label for="applyLOS" style="font-size:12px; color:#444;">Apply LOS to trolley demand</label>
+        </div>
+      </div>
+      <div class="control">
+        <label>Critical mass / cap K (for markers)</label>
+        <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
+        <div class="val"><span id="capKVal">60,000</span> people</div>
+      </div>
+      <div class="control">
+        <label>Growth style</label>
+        <select class="disabledSelect">
+          <option selected>Logistic (cap K)</option>
+        </select>
+        <div class="val">Using <strong>exponential growth</strong> (dA = r·A) for frontline use.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Note:</strong> This model uses <strong>exponential growth (dA = r·A)</strong> for frontline operational use.
+      A logistic growth version (with capacity cap K) is available on request to test scenarios.
+    </div>
+
+    <div class="legend-note">
+      <span class="sw red"></span>Historic UHL MW total (2014–2025) &nbsp;&nbsp;
+      <span class="sw blue"></span>ED Attendees UHL (simulated 2014–2050) &nbsp;&nbsp;
+      <span class="sw green"></span>Trolleys (cubicles) required &nbsp;&nbsp;|&nbsp;&nbsp;
+      Vertical dashed lines = years when ED first reaches K, 2K, 3K…
+    </div>
+
+    <div class="grid">
+      <div id="edPlot"></div>
+      <div id="trolleyPlot"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // Historic series (red) — UHL MW total (2014–2025)
+  const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87000,97000];
+
+  // Simulation years 2014..2050
+  const YEARS_ALL = []; for(let y=2014;y<=2050;y++) YEARS_ALL.push(y);
+
+  // UI
+  const $ = id => document.getElementById(id);
+  const growth=$("growth"), growthVal=$("growthVal");
+  const initial=$("initial"), initialVal=$("initialVal");
+  const conv=$("conv"), convVal=$("convVal");
+  const present=$("present"), presentVal=$("presentVal");
+  const los=$("los"), losVal=$("losVal");
+  const applyLOS=$("applyLOS");
+  const capK=$("capK"), capKVal=$("capKVal");
+  const yearLabel=$("yearLabel");
+  const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
+
+  const pct = v => (v*100).toFixed(1)+"%";
+  const fmt = v => (+v).toLocaleString();
+
+  function readParams(){
+    return {
+      r: parseFloat(growth.value),
+      A0: parseFloat(initial.value),
+      pConv: parseFloat(conv.value),
+      pDay: parseFloat(present.value),
+      LOS: parseFloat(los.value),
+      useLOS: applyLOS.checked,
+      K: parseFloat(capK.value)
+    };
+  }
+
+  function showVals(){
+    const p=readParams();
+    growthVal.textContent=pct(p.r);
+    initialVal.textContent=fmt(p.A0);
+    convVal.textContent=pct(p.pConv);
+    presentVal.textContent=p.pDay.toFixed(0);
+    losVal.textContent=p.LOS.toFixed(1);
+    capKVal.textContent=fmt(p.K);
+  }
+  showVals();
+  applyLOS.checked=false; // default
+
+  // Exponential attendees
+  function simulateED(p){
+    const A=[p.A0];
+    for(let i=1;i<YEARS_ALL.length;i++){
+      A.push(A[i-1]*(1+p.r));
+    }
+    return A;
+  }
+
+  // Trolleys: initial equals conv% × presentations/day; then scale with ED growth; optional LOS multiplier
+  function computeTrolleys(p, ED){
+    const T0 = p.pConv * p.pDay;            // initial (no LOS)
+    const scale = ED.map(v => (ED[0] ? v/ED[0] : 1));
+    let T = scale.map(f => T0 * f);
+    if(p.useLOS){ T = T.map(v => v * p.LOS); }
+    return T;
+  }
+
+  // Find years when ED first reaches K, 2K, 3K...
+  function findKYears(ED, K){
+    const years=[]; if(K<=0) return years;
+    let m=1, target=K;
+    for(let i=0;i<ED.length;i++){
+      if(ED[i] >= target){
+        years.push(YEARS_ALL[i]);
+        m++; target = K*m;
+      }
+    }
+    return years;
+  }
+
+  // Layouts
+  const cfg={responsive:true, displaylogo:false};
+  function yRangeFrom(arr){
+    const min=Math.min(...arr), max=Math.max(...arr);
+    const pad=(max-min)*0.12 || 1;
+    return [Math.max(0,min-pad), max+pad];
+  }
+  function layoutED(range, kYears){
+    const shapes=[], ann=[];
+    kYears.forEach(yr=>{
+      shapes.push({type:'line', x0:yr, x1:yr, y0:range[0], y1:range[1], line:{color:'rgba(31,119,180,.35)', width:2, dash:'dash'}});
+      ann.push({x:yr, y:range[1], text:String(yr), yanchor:'top', showarrow:false, font:{size:11, color:'rgba(31,119,180,.65)'}});
+    });
+    return { margin:{l:60,r:12,t:10,b:44}, xaxis:{title:"Year", range:[2014,2050]}, yaxis:{title:"People", range}, showlegend:false, shapes, annotations:ann };
+  }
+  function layoutT(range){
+    return { margin:{l:60,r:12,t:10,b:44}, xaxis:{title:"Year", range:[2014,2050]}, yaxis:{title:"Trolleys (Cubicles)", range}, showlegend:false };
+  }
+
+  // Initial compute & draw
+  let P = readParams();
+  let ED = simulateED(P);
+  let T  = computeTrolleys(P, ED);
+
+  // Align the first historic point to slider initial so both start the same
+  const histX = YEARS_HIST.slice();
+  const histY = HIST_UHL_MW_TOTAL.slice();
+  if(histX[0] !== 2014){ histX.unshift(2014); histY.unshift(P.A0); } else { histY[0] = P.A0; }
+
+  let kYears = findKYears(ED, P.K);
+  let yE = yRangeFrom(histY.concat(ED));
+  let yT = yRangeFrom(T);
+
+  Plotly.newPlot("edPlot",[
+    {x:histX, y:histY, mode:"lines", line:{color:"#d62728", width:2}},
+    {x:[2014], y:[P.A0], mode:"lines", line:{color:"#1f77b4", width:3}}
+  ], layoutED(yE, kYears), cfg);
+
+  Plotly.newPlot("trolleyPlot",[
+    {x:[2014], y:[T[0]], mode:"lines", line:{color:"#2ca02c", width:3}}
+  ], layoutT(yT), cfg);
+
+  // Animation
+  let frameIdx=1, timer=null, ms=120;
+  function render(i){
+    const xBlue = YEARS_ALL.slice(0,i+1);
+    const yBlue = ED.slice(0,i+1);
+    const xGreen = YEARS_ALL.slice(0,i+1);
+    const yGreen = T.slice(0,i+1);
+
+    yE = yRangeFrom(histY.concat(ED));
+    yT = yRangeFrom(T);
+    kYears = findKYears(ED, P.K);
+
+    Plotly.restyle("edPlot", { x:[histX, xBlue], y:[histY, yBlue] });
+    Plotly.relayout("edPlot", layoutED(yE, kYears));
+
+    Plotly.restyle("trolleyPlot", { x:[xGreen], y:[yGreen] });
+    Plotly.relayout("trolleyPlot", {"yaxis.range": yT});
+
+    yearLabel.textContent = "Year: " + xBlue[xBlue.length-1];
+  }
+  function run(){ btnRun.disabled=true; btnPause.disabled=false;
+    if(timer) clearInterval(timer);
+    timer = setInterval(()=>{ frameIdx += 1; if(frameIdx >= YEARS_ALL.length){ pause(); return; } render(frameIdx); }, ms);
+  }
+  function pause(){ btnRun.disabled=false; btnPause.disabled=true; if(timer) clearInterval(timer); timer=null; }
+  function reset(){
+    pause();
+    P = readParams();
+    showVals();
+
+    ED = simulateED(P);
+    T  = computeTrolleys(P, ED);
+
+    // align historic first point with new initial
+    if(histX[0] !== 2014){ histX.unshift(2014); histY.unshift(P.A0); } else { histY[0] = P.A0; }
+
+    frameIdx = 1;
+    render(frameIdx);
+  }
+
+  ["input","change"].forEach(evt => {
+    growth.addEventListener(evt, reset);
+    initial.addEventListener(evt, reset);
+    conv.addEventListener(evt, reset);
+    present.addEventListener(evt, reset); // kept for completeness; used only in T0
+    los.addEventListener(evt, reset);
+    applyLOS.addEventListener(evt, reset);
+    capK.addEventListener(evt, reset);
+  });
+
+  btnRun.addEventListener("click", run);
+  btnPause.addEventListener("click", pause);
+  btnReset.addEventListener("click", reset);
+
+  // First frame
+  render(1);
+})();
+</script>
+</body>
+</html>
