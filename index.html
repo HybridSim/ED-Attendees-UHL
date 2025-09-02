@@ -3,41 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MIDCARE © Operational — UHL ED Attendees</title>
+  <title>MIDCARE© Operational — UHL ED Attendees</title>
 
-  <!-- Poppins font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <!-- Plotly -->
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 
   <style>
-    :root { --gap: 14px; }
+    :root { --gap: 10px; --plot-h: 260px; }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; background:#fff; }
-    header { padding: 16px 18px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .brand { display:flex; align-items:center; gap:10px; }
-    .brand img { height:42px; width:auto; }
-    .brand h1 { margin:0; font-size:20px; letter-spacing:.2px; font-weight:600; }
-    .toolbar { display:flex; gap:8px; align-items:center; }
-    .btn { padding:8px 12px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.05); font-weight:600; }
+    header { padding: 10px 12px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+    .brand { display:flex; align-items:center; gap:8px; }
+    .brand img { height:32px; width:auto; }
+    .brand h1 { margin:0; font-size:16px; letter-spacing:.2px; font-weight:600; }
+    .toolbar { display:flex; gap:6px; align-items:center; font-size:12px; }
+    .btn { padding:4px 8px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.05); font-weight:600; font-size:12px; }
     .btn:disabled { opacity:.55; cursor:default; }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 10px; }
 
-    .controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--gap); margin: 10px 0 12px; }
-    .control { background:#fafafa; border:1px solid #eee; border-radius:12px; padding:10px 12px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
-    .control label { display:block; font-weight:600; font-size:12px; margin-bottom:6px; }
+    .controls { display:grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: var(--gap); margin: 8px 0 10px; }
+    @media (max-width: 1100px){ .controls{grid-template-columns: repeat(3, minmax(200px, 1fr));} }
+    @media (max-width: 860px){ .controls{grid-template-columns: repeat(2, minmax(200px, 1fr));} }
+    @media (max-width: 560px){ .controls{grid-template-columns: 1fr;} }
+
+    .control { background:#fafafa; border:1px solid #eee; border-radius:10px; padding:8px; box-shadow:0 1px 2px rgba(0,0,0,.04) }
+    .control label { display:block; font-weight:600; font-size:11px; margin-bottom:4px; }
     .control input[type=range], .control select { width:100%; }
-    .val { font-variant-numeric: tabular-nums; font-size:12px; color:#444; margin-top:2px; }
-    .disabledSelect { opacity:.45; pointer-events:none; filter:grayscale(20%); }
+    .control input[type=range] { height: 18px; }
+    .val { font-variant-numeric: tabular-nums; font-size:11px; color:#444; margin-top:2px; }
+    .toggle { display:flex; align-items:center; gap:6px; font-size:11px; color:#444; margin-top:4px; }
 
-    .note { font-size:12px; color:#444; margin: 6px 2px 12px; line-height:1.35; background:#fcfcfc; border:1px dashed #eee; border-radius:10px; padding:10px 12px; }
-
-    .legend-note { font-size:12px; color:#444; margin: 4px 0 10px; }
+    .legend-note { font-size:11px; color:#444; margin: 4px 0 8px; }
     .sw { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-right:6px; }
     .sw.red{background:#d62728;} .sw.blue{background:#1f77b4;} .sw.green{background:#2ca02c;} .sw.purple{background:#9467bd;} .sw.orange{background:#ff7f0e;}
 
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items:stretch; }
     @media (max-width: 980px){ .grid { grid-template-columns:1fr; } }
+    #edPlot, #trolleyPlot{height:var(--plot-h)}
+
+    .note { font-size:11px; color:#444; margin: 6px 2px 8px; line-height:1.35; background:#fcfcfc; border:1px dashed #eee; border-radius:10px; padding:8px 10px; }
   </style>
 </head>
 <body>
@@ -55,7 +59,6 @@
   </header>
 
   <div class="wrap">
-    <!-- Controls -->
     <div class="controls">
       <div class="control">
         <label for="growth">Annual ED growth rate (CAGR)</label>
@@ -74,91 +77,80 @@
       </div>
       <div class="control">
         <label for="present">Average presentations per day</label>
-        <input id="present" type="range" min="0" max="500" step="1" value="230">
-        <div class="val"><span id="presentVal">230</span> per day</div>
+        <input id="present" type="range" min="0" max="500" step="1" value="152">
+        <div class="val"><span id="presentVal">152</span> per day</div>
       </div>
       <div class="control">
-        <label for="los">Average length of stay (days)</label>
+        <label for="los">Average length of stay (days) — always applied</label>
         <input id="los" type="range" min="0" max="60" step="0.1" value="5">
         <div class="val"><span id="losVal">5.0</span> days</div>
-        <div style="margin-top:6px;">
-          <input id="applyLOS" type="checkbox"> <label for="applyLOS" style="font-size:12px; color:#444;">Apply LOS to trolley demand</label>
-        </div>
       </div>
       <div class="control">
         <label for="capK">Critical mass / cap K (for markers)</label>
         <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
         <div class="val"><span id="capKVal">60,000</span> people</div>
+        <div class="toggle">
+          <input id="showAllK" type="checkbox" checked>
+          <label for="showAllK">Show all multiples of K</label>
+        </div>
       </div>
       <div class="control">
         <label for="capGrowth">Annual trolley capacity growth</label>
-        <input id="capGrowth" type="range" min="0.00" max="0.10" step="0.0005" value="0.02">
-        <div class="val"><span id="capGrowthVal">2.0%</span> / yr</div>
+        <input id="capGrowth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
+        <div class="val"><span id="capGrowthVal">4.6%</span> / yr</div>
       </div>
       <div class="control">
         <label for="endYear">Projection end year</label>
-        <input id="endYear" type="range" min="2025" max="2050" step="1" value="2050">
-        <div class="val"><span id="endYearVal">2050</span></div>
+        <input id="endYear" type="range" min="2025" max="2075" step="1" value="2075">
+        <div class="val"><span id="endYearVal">2075</span></div>
       </div>
-    </div>
-
-    <div class="note">
-      <strong>Note:</strong> This model uses <strong>exponential growth (dA = r·A)</strong> for frontline operational use.
-      A logistic growth version (with capacity cap K) is available on request to test scenarios.
-    </div>
-
-    <div class="legend-note">
-      <span class="sw red"></span>Historic UHL MW total (2014–2025) &nbsp;&nbsp;
-      <span class="sw blue"></span>ED Attendees UHL (simulated) &nbsp;&nbsp;
-      <span class="sw green"></span>Trolleys (demand) &nbsp;&nbsp;
-      <span class="sw purple"></span>Trolley capacity (supply) &nbsp;&nbsp;
-      <span class="sw orange"></span>Shortfall (demand > capacity) &nbsp;&nbsp;|&nbsp;&nbsp;
-      Vertical dashed lines = years when ED first reaches K, 2K, 3K…
     </div>
 
     <div class="grid">
       <div id="edPlot"></div>
       <div id="trolleyPlot"></div>
     </div>
+
+    <div class="note">
+      Capacity growth is soft‑linked to ED growth until you adjust its slider. Dark‑red vertical lines show every multiple of K (critical mass). Projection horizon extends to 2075 (lifespan of new hospital 50 years). Press reset before changing sliders.
+    </div>
   </div>
 
 <script>
 (function(){
-  // Historic series (red) — UHL MW total (2014–2025)
   const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87000,97000];
 
-  // Defaults for hard reset
   const DEFAULTS = {
     growth: 0.046,
     initial: 55502,
     conv: 0.333,
-    present: 230,
+    present: 152,
     los: 5,
-    applyLOS: false,
     capK: 60000,
-    capGrowth: 0.02,
-    endYear: 2050
+    showAllK: true,
+    capGrowth: 0.046,
+    endYear: 2075
   };
 
-  // UI
   const $ = id => document.getElementById(id);
   const growth=$("growth"), growthVal=$("growthVal");
   const initial=$("initial"), initialVal=$("initialVal");
   const conv=$("conv"), convVal=$("convVal");
   const present=$("present"), presentVal=$("presentVal");
   const los=$("los"), losVal=$("losVal");
-  const applyLOS=$("applyLOS");
   const capK=$("capK"), capKVal=$("capKVal");
+  const showAllK=$("showAllK");
   const capGrowth=$("capGrowth"), capGrowthVal=$("capGrowthVal");
   const endYear=$("endYear"), endYearVal=$("endYearVal");
   const yearLabel=$("yearLabel");
   const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
 
+  let capLinked = true;
+
   const pct = v => (v*100).toFixed(1)+"%";
   const fmt = v => (+v).toLocaleString();
-
-  function makeYears(end){ const a=[]; for(let y=2014;y<=end;y++) a.push(y); return a; }
+  const makeYears = (end)=>{ const a=[]; for(let y=2014;y<=end;y++) a.push(y); return a; };
 
   function readParams(){
     return {
@@ -166,16 +158,15 @@
       A0: +initial.value,
       pConv: +conv.value,
       pDay: +present.value,
-      LOS: +los.value,
-      useLOS: applyLOS.checked,
+      LOS: +los.value,          // always applied
       K: +capK.value,
+      showAll: showAllK.checked,
       gCap: +capGrowth.value,
       Yend: parseInt(endYear.value,10)
     };
   }
 
-  function showVals(){
-    const p=readParams();
+  function showVals(p){
     growthVal.textContent=pct(p.r);
     initialVal.textContent=fmt(p.A0);
     convVal.textContent=pct(p.pConv);
@@ -186,166 +177,143 @@
     endYearVal.textContent=String(p.Yend);
   }
 
-  // Simulations
-  function simulateED(p, YEARS_ALL){
-    const A=[p.A0];
-    for(let i=1;i<YEARS_ALL.length;i++){ A.push(A[i-1]*(1+p.r)); }
-    return A;
-  }
-
-  // Trolleys demand
+  function simulateED(p, YEARS_ALL){ const A=[p.A0]; for(let i=1;i<YEARS_ALL.length;i++) A.push(A[i-1]*(1+p.r)); return A; }
   function computeTrolleys(p, ED){
     const T0 = p.pConv * p.pDay;
-    const scale = ED.map(v => (ED[0] ? v/ED[0] : 1));
-    let T = scale.map(f => T0 * f);
-    if(p.useLOS){ T = T.map(v => v * p.LOS); }
+    const scale = ED.map(v => (ED[0]?v/ED[0]:1));
+    let T = scale.map(f => T0*f);
+    T = T.map(v => v*p.LOS);   // LOS always applied
     return T;
   }
+  function computeCapacity(T0, g, len){ const C=[T0]; for(let i=1;i<len;i++) C.push(C[i-1]*(1+g)); return C; }
+  function shortfallSeries(T,C){ return T.map((v,i)=> (v>C[i] ? v : null)); }
 
-  // Capacity supply
-  function computeCapacity(T0, g, len){
-    const C=[T0]; for(let i=1;i<len;i++) C.push(C[i-1]*(1+g)); return C;
-  }
-
-  function shortfallSeries(T, C){ return T.map((v,i)=> (v>C[i] ? v : null)); }
-
-  function findKYears(ED, K, YEARS_ALL){
-    const years=[]; if(K<=0) return years;
-    let m=1, target=K;
-    for(let i=0;i<ED.length;i++){ if(ED[i] >= target){ years.push(YEARS_ALL[i]); m++; target = K*m; } }
+  function findKYears(ED,K,YEARS_ALL,showAll){
+    const years=[]; if(K<=0) return years; let m=1, target=K;
+    for(let i=0;i<ED.length;i++){ if(ED[i]>=target){ years.push(YEARS_ALL[i]); if(!showAll && years.length>=5) break; m++; target=K*m; } }
     return years;
   }
 
-  // Layouts
-  const cfg={responsive:true, displaylogo:false, scrollZoom:true};
-  function yRangeFrom(arr){
-    const vals = arr.filter(v => typeof v === "number" && isFinite(v));
-    const min=Math.min(...vals), max=Math.max(...vals);
-    const span=Math.max(1, max-min);
-    const pad=Math.max(1, span*0.12);
-    return [Math.max(0, min-pad), max+pad];
-  }
-  function layoutED(range, kYears, end){
-    const shapes=[], ann=[];
+  const cfg={responsive:true, displaylogo:false};
+  function yRangeFrom(arr){ const vals=arr.filter(v=>typeof v==="number"&&isFinite(v)); const min=Math.min(...vals), max=Math.max(...vals); const span=Math.max(1,max-min); const pad=Math.max(1,span*0.12); return [Math.max(0,min-pad),max+pad]; }
+
+  function layoutED(range,kYears,end){
+    const shapes=[],ann=[];
     kYears.forEach(yr=>{
-      shapes.push({type:'line', x0:yr, x1:yr, y0:range[0], y1:range[1], line:{color:'rgba(139,0,0,.75)', width:2, dash:'dash'}});
-      ann.push({x:yr, y:range[1]-((range[1]-range[0])*0.04), text:String(yr), yanchor:'top', showarrow:false, font:{size:11, color:'rgba(139,0,0,.85)'}});
+      shapes.push({type:'line',x0:yr,x1:yr,y0:range[0],y1:range[1],line:{color:'rgba(139,0,0,.8)',width:2,dash:'dash'}});
+      ann.push({x:yr,y:range[1]-((range[1]-range[0])*0.04),text:String(yr),yanchor:'top',showarrow:false,font:{size:10,color:'rgba(139,0,0,.9)'}});
     });
-    return { margin:{l:60,r:12,t:10,b:44}, xaxis:{title:"Year", range:[2014,end]}, yaxis:{title:"People", range}, showlegend:false, shapes, annotations:ann };
+    return {margin:{l:54,r:10,t:6,b:36},xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},showlegend:false,shapes,annotations:ann};
   }
-  function layoutT(range, end){
-    return { margin:{l:60,r:12,t:10,b:44}, xaxis:{title:"Year", range:[2014,end]}, yaxis:{title:"Trolleys (Cubicles)", range}, showlegend:true, legend:{orientation:'h', y:-0.2} };
+  function layoutT(range,end){
+    return {margin:{l:54,r:10,t:6,b:36},xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},showlegend:true,legend:{orientation:'h',y:-0.25,font:{size:10}}};
   }
 
-  // Init
+  // init
+  showAllK.checked = DEFAULTS.showAllK;
+  capGrowth.value = DEFAULTS.capGrowth;
+  endYear.value = DEFAULTS.endYear;
+  los.value = DEFAULTS.los;
+
   let P = readParams();
+  showVals(P);
+
   let YEARS_ALL = makeYears(P.Yend);
   let ED = simulateED(P, YEARS_ALL);
-  let T  = computeTrolleys(P, ED);
-  let C  = computeCapacity(T[0], P.gCap, YEARS_ALL.length);
+  let T = computeTrolleys(P, ED);
+  let C = computeCapacity(T[0], P.gCap, YEARS_ALL.length);
 
   const histX = YEARS_HIST.slice();
   const histY = HIST_UHL_MW_TOTAL.slice();
-  if(histX[0] === 2014) histY[0] = P.A0;
+  if(histX[0]===2014) histY[0]=P.A0;
 
-  let kYears = findKYears(ED, P.K, YEARS_ALL);
+  let kYears = findKYears(ED,P.K,YEARS_ALL,P.showAll);
   let yE = yRangeFrom(histY.concat(ED));
   let yT = yRangeFrom(T.concat(C));
 
   Plotly.newPlot("edPlot",[
-    {x:histX, y:histY, name:"Historic", mode:"lines", line:{color:"#d62728", width:2}},
-    {x:[2014], y:[P.A0], name:"ED (sim)", mode:"lines", line:{color:"#1f77b4", width:3}}
-  ], layoutED(yE, kYears, P.Yend), cfg);
+    {x:histX,y:histY,name:"Historic",mode:"lines",line:{color:"#d62728",width:2}},
+    {x:[2014],y:[P.A0],name:"ED (sim)",mode:"lines",line:{color:"#1f77b4",width:3}}
+  ],layoutED(yE,kYears,P.Yend),cfg);
 
   Plotly.newPlot("trolleyPlot",[
-    {x:[2014], y:[T[0]], name:"Demand",   mode:"lines", line:{color:"#2ca02c", width:3}},
-    {x:[2014], y:[C[0]], name:"Capacity", mode:"lines", line:{color:"#9467bd", width:2}},
-    {x:[2014], y:[null], name:"Shortfall (demand > capacity)", mode:"lines", line:{color:"#ff7f0e", width:0}, fill:"tozeroy", fillcolor:"rgba(255,127,14,0.28)"}
-  ], layoutT(yT, P.Yend), cfg);
+    {x:[2014],y:[T[0]],name:"Demand",mode:"lines",line:{color:"#2ca02c",width:3}},
+    {x:[2014],y:[C[0]],name:"Capacity",mode:"lines",line:{color:"#9467bd",width:2}},
+    {x:[2014],y:[null],name:"Shortfall (demand > capacity)",mode:"lines",line:{color:"#ff7f0e",width:0},fill:"tozeroy",fillcolor:"rgba(255,127,14,0.28)"}
+  ],layoutT(yT,P.Yend),cfg);
 
-  // Animation + render
   let frameIdx=1, timer=null, ms=120;
   function render(i){
-    const x = YEARS_ALL.slice(0,i+1);
-    const yBlue = ED.slice(0,i+1);
-    const yGreen = T.slice(0,i+1);
-    const yPurple = C.slice(0,i+1);
-    const yDef = shortfallSeries(yGreen, yPurple);
+    const x=YEARS_ALL.slice(0,i+1);
+    const yBlue=ED.slice(0,i+1);
+    const yGreen=T.slice(0,i+1);
+    const yPurple=C.slice(0,i+1);
+    const yDef=shortfallSeries(yGreen,yPurple);
 
-    yE = yRangeFrom(histY.concat(ED));
-    yT = yRangeFrom(T.concat(C));
-    kYears = findKYears(ED, P.K, YEARS_ALL);
+    yE=yRangeFrom(histY.concat(ED));
+    yT=yRangeFrom(T.concat(C));
+    const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
 
-    Plotly.restyle("edPlot", { x:[histX, x], y:[histY, yBlue] });
-    Plotly.relayout("edPlot", layoutED(yE, kYears, P.Yend));
+    Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
+    Plotly.relayout("edPlot",layoutED(yE,kY,P.Yend));
 
-    Plotly.restyle("trolleyPlot", { x:[x, x, x], y:[yGreen, yPurple, yDef] });
-    Plotly.relayout("trolleyPlot", layoutT(yT, P.Yend));
+    Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
+    Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
 
-    yearLabel.textContent = "Year: " + x[x.length-1];
+    yearLabel.textContent="Year: "+x[x.length-1];
   }
-  function run(){ btnRun.disabled=true; btnPause.disabled=false;
-    if(timer) clearInterval(timer);
-    timer = setInterval(()=>{ frameIdx += 1; if(frameIdx >= YEARS_ALL.length){ pause(); return; } render(frameIdx); }, ms);
-  }
-  function pause(){ btnRun.disabled=false; btnPause.disabled=true; if(timer) clearInterval(timer); timer=null; }
+  function run(){ btnRun.disabled=true; btnPause.disabled=false; if(timer)clearInterval(timer); timer=setInterval(()=>{frameIdx+=1;if(frameIdx>=YEARS_ALL.length){pause();return;}render(frameIdx);},ms); }
+  function pause(){ btnRun.disabled=false; btnPause.disabled=true; if(timer)clearInterval(timer); timer=null; }
 
-  // Hard reset to original defaults
   function setDefaults(){
-    growth.value = DEFAULTS.growth;
-    initial.value = DEFAULTS.initial;
-    conv.value    = DEFAULTS.conv;
-    present.value = DEFAULTS.present;
-    los.value     = DEFAULTS.los;
-    applyLOS.checked = DEFAULTS.applyLOS;
-    capK.value    = DEFAULTS.capK;
-    capGrowth.value = DEFAULTS.capGrowth;
-    endYear.value = DEFAULTS.endYear;
-    yearLabel.textContent = "Year: 2014";
-    showVals();
+    growth.value=DEFAULTS.growth;
+    initial.value=DEFAULTS.initial;
+    conv.value=DEFAULTS.conv;
+    present.value=DEFAULTS.present;
+    los.value=DEFAULTS.los;
+    capK.value=DEFAULTS.capK;
+    showAllK.checked=DEFAULTS.showAllK;
+    capGrowth.value=DEFAULTS.capGrowth;
+    endYear.value=DEFAULTS.endYear;
+    capLinked=true;
+    yearLabel.textContent="Year: 2014";
+    P=readParams(); showVals(P);
   }
 
   function recompute(){
-    P = readParams();
-    showVals();
-    YEARS_ALL = makeYears(P.Yend);
-    ED  = simulateED(P, YEARS_ALL);
-    T   = computeTrolleys(P, ED);
-    C   = computeCapacity(T[0], P.gCap, YEARS_ALL.length);
-    if(histX[0] === 2014) histY[0] = P.A0;
-    frameIdx = Math.min(frameIdx, YEARS_ALL.length-1);
+    if(capLinked){ capGrowth.value=growth.value; }
+    P=readParams(); showVals(P);
+    YEARS_ALL=makeYears(P.Yend);
+    ED=simulateED(P,YEARS_ALL);
+    T=computeTrolleys(P,ED);
+    C=computeCapacity(T[0],P.gCap,YEARS_ALL.length);
+    if(histX[0]===2014) histY[0]=P.A0;
+    frameIdx=Math.min(frameIdx,YEARS_ALL.length-1);
     render(frameIdx);
   }
 
-  function reset(){
-    pause();
-    setDefaults();
-    recompute();
-    frameIdx = 1;
-    render(frameIdx);
-  }
+  function reset(){ pause(); setDefaults(); recompute(); frameIdx=1; render(frameIdx); }
 
-  // Live updates from sliders
-  function debounce(fn, d=60){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), d); }; }
-  const debounced = debounce(recompute, 60);
-  ["input","change"].forEach(evt => {
-    growth.addEventListener(evt, debounced);
-    initial.addEventListener(evt, debounced);
-    conv.addEventListener(evt, debounced);
-    present.addEventListener(evt, debounced);
-    los.addEventListener(evt, debounced);
-    applyLOS.addEventListener(evt, debounced);
-    capK.addEventListener(evt, debounced);
-    capGrowth.addEventListener(evt, debounced);
-    endYear.addEventListener(evt, debounced);
+  function debounce(fn,d=60){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);} }
+  const debounced=debounce(recompute,50);
+  ["input","change"].forEach(evt=>{
+    growth.addEventListener(evt,debounced);
+    initial.addEventListener(evt,debounced);
+    conv.addEventListener(evt,debounced);
+    present.addEventListener(evt,debounced);
+    los.addEventListener(evt,debounced);
+    capK.addEventListener(evt,debounced);
+    showAllK.addEventListener(evt,debounced);
+    capGrowth.addEventListener(evt,()=>{capLinked=false;debounced();});
+    endYear.addEventListener(evt,debounced);
   });
 
-  btnRun.addEventListener("click", run);
-  btnPause.addEventListener("click", pause);
-  btnReset.addEventListener("click", reset);
+  btnRun.addEventListener("click",run);
+  btnPause.addEventListener("click",pause);
+  btnReset.addEventListener("click",reset);
 
-  // First frame
-  showVals();
+  // first frame
+  setDefaults();
   render(1);
 })();
 </script>
