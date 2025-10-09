@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,12 +81,12 @@
         <div class="val"><span id="presentVal">152</span> per day</div>
       </div>
       <div class="control">
-        <label for="los">Average length of stay (days) </label>
+        <label for="los">Average length of stay (days) — always applied</label>
         <input id="los" type="range" min="0" max="60" step="0.1" value="5">
         <div class="val"><span id="losVal">5.0</span> days</div>
       </div>
       <div class="control">
-        <label for="capK">Critical mass / cap K </label>
+        <label for="capK">Critical mass / cap K (for markers)</label>
         <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
         <div class="val"><span id="capKVal">60,000</span> people</div>
         <div class="toggle">
@@ -120,7 +119,7 @@
 
 <script>
 (function(){
-  // --- Safeguard: ensure checkbox starts unchecked even with bfcache/form restore ---
+  // Ensure checkbox starts unchecked even with BFCache/form restore
   function forceUncheck() {
     var el = document.getElementById('showAllK');
     if (!el) return;
@@ -141,10 +140,12 @@
     present: 152,
     los: 5,
     capK: 60000,
-    showAllK: false,     // <-- unchecked by default
+    showAllK: false,     // unchecked by default
     capGrowth: 0.046,
     endYear: 2075
   };
+
+  const MAX_K_LINES = 5; // cap visible K markers to 5
 
   const $ = id => document.getElementById(id);
   const growth=$("growth"), growthVal=$("growthVal");
@@ -173,9 +174,7 @@
       pDay: +present.value,
       LOS: +los.value,          // always applied
       K: +capK.value,
-     
-      showAllK.checked = DEFAULTS.showAllK; // now false -> unchecked
-
+      showAll: showAllK.checked,
       gCap: +capGrowth.value,
       Yend: parseInt(endYear.value,10)
     };
@@ -203,18 +202,27 @@
   function computeCapacity(T0, g, len){ const C=[T0]; for(let i=1;i<len;i++) C.push(C[i-1]*(1+g)); return C; }
   function shortfallSeries(T,C){ return T.map((v,i)=> (v>C[i] ? v : null)); }
 
-  // IMPORTANT: when unchecked, return no K years (no markers)
-  function findKYears(ED,K,YEARS_ALL,showAll){
+  // Return at most MAX_K_LINES K-crossing years, evenly sampled
+  function findKYears(ED, K, YEARS_ALL, showAll){
     if (!showAll || K <= 0) return [];
-    const years=[]; let m=1, target=K;
-    for(let i=0;i<ED.length;i++){
-      if(ED[i]>=target){ years.push(YEARS_ALL[i]); m++; target=K*m; }
+    const hits = [];
+    let m = 1, target = K;
+    for (let i = 0; i < ED.length; i++) {
+      if (ED[i] >= target) { hits.push(YEARS_ALL[i]); m++; target = K * m; }
     }
-    return years;
+    if (hits.length <= MAX_K_LINES) return hits;
+    const step = Math.ceil(hits.length / MAX_K_LINES);
+    return hits.filter((_, i) => i % step === 0).slice(0, MAX_K_LINES);
   }
 
   const cfg={responsive:true, displaylogo:false};
-  function yRangeFrom(arr){ const vals=arr.filter(v=>typeof v==="number"&&isFinite(v)); const min=Math.min(...vals), max=Math.max(...vals); const span=Math.max(1,max-min); const pad=Math.max(1,span*0.12); return [Math.max(0,min-pad),max+pad]; }
+  function yRangeFrom(arr){
+    const vals=arr.filter(v=>typeof v==="number"&&isFinite(v));
+    const min=Math.min(...vals), max=Math.max(...vals);
+    const span=Math.max(1,max-min);
+    const pad=Math.max(1,span*0.12);
+    return [Math.max(0,min-pad),max+pad];
+  }
 
   function layoutED(range,kYears,end){
     const shapes=[],ann=[];
@@ -222,19 +230,35 @@
       shapes.push({type:'line',x0:yr,x1:yr,y0:range[0],y1:range[1],line:{color:'rgba(139,0,0,.8)',width:2,dash:'dash'}});
       ann.push({x:yr,y:range[1]-((range[1]-range[0])*0.04),text:String(yr),yanchor:'top',showarrow:false,font:{size:10,color:'rgba(139,0,0,.9)'}});
     });
-    return {margin:{l:54,r:10,t:6,b:36},xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},showlegend:false,shapes,annotations:ann};
+    return {
+      margin:{l:54,r:10,t:6,b:36},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},
+      showlegend:false,shapes,annotations:ann
+    };
   }
   function layoutT(range,end){
-    return {margin:{l:54,r:10,t:6,b:36},xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},showlegend:true,legend:{orientation:'h',y:-0.25,font:{size:10}}};
+    return {
+      margin:{l:54,r:10,t:6,b:36},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},
+      showlegend:true,legend:{orientation:'h',y:-0.25,font:{size:10}}
+    };
   }
 
   // init from defaults
-  showAllK.checked = DEFAULTS.showAllK;  // false – starts unchecked
-  capGrowth.value = DEFAULTS.capGrowth;
-  endYear.value = DEFAULTS.endYear;
-  los.value = DEFAULTS.los;
+  document.getElementById('showAllK').checked = DEFAULTS.showAllK; // false
+  const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
+        los=$("los"), capK=$("capK"), capGrowth=$("capGrowth"), endYear=$("endYear");
+  const growthVal=$("growthVal"), initialVal=$("initialVal"), convVal=$("convVal"),
+        presentVal=$("presentVal"), losVal=$("losVal"), capKVal=$("capKVal"),
+        capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
+  const showAllK=$("showAllK");
+  const yearLabel=$("yearLabel");
+  const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
 
-  // read & simulate
+  let capLinked = true;
+
   let P = readParams();
   showVals(P);
 
@@ -340,3 +364,4 @@
 </script>
 </body>
 </html>
+
