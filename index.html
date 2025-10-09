@@ -82,12 +82,12 @@
         <div class="val"><span id="presentVal">152</span> per day</div>
       </div>
       <div class="control">
-        <label for="los">Average length of stay (days) — always applied</label>
+        <label for="los">Average length of stay (days) </label>
         <input id="los" type="range" min="0" max="60" step="0.1" value="5">
         <div class="val"><span id="losVal">5.0</span> days</div>
       </div>
       <div class="control">
-        <label for="capK">Critical mass / cap K (for markers)</label>
+        <label for="capK">Critical mass / cap K </label>
         <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
         <div class="val"><span id="capKVal">60,000</span> people</div>
         <div class="toggle">
@@ -173,7 +173,9 @@
       pDay: +present.value,
       LOS: +los.value,          // always applied
       K: +capK.value,
-      showAll: showAllK.checked,
+     
+      showAllK.checked = DEFAULTS.showAllK; // now false -> unchecked
+
       gCap: +capGrowth.value,
       Yend: parseInt(endYear.value,10)
     };
