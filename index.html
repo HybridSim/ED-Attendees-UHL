@@ -121,7 +121,7 @@
 (function(){
   // Ensure checkbox starts unchecked even with BFCache/form restore
   function forceUncheck() {
-    var el = document.getElementById('showAllK');
+    const el = document.getElementById('showAllK');
     if (!el) return;
     el.removeAttribute('checked');
     el.defaultChecked = false;
@@ -140,23 +140,20 @@
     present: 152,
     los: 5,
     capK: 60000,
-    showAllK: false,     // unchecked by default
+    showAllK: false,     // <-- unchecked by default
     capGrowth: 0.046,
     endYear: 2075
   };
 
-  const MAX_K_LINES = 5; // cap visible K markers to 5
+  const MAX_K_LINES = 5; // cap visible K markers to 5 (spread across years)
 
   const $ = id => document.getElementById(id);
-  const growth=$("growth"), growthVal=$("growthVal");
-  const initial=$("initial"), initialVal=$("initialVal");
-  const conv=$("conv"), convVal=$("convVal");
-  const present=$("present"), presentVal=$("presentVal");
-  const los=$("los"), losVal=$("losVal");
-  const capK=$("capK"), capKVal=$("capKVal");
+  const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
+        los=$("los"), capK=$("capK"), capGrowth=$("capGrowth"), endYear=$("endYear");
+  const growthVal=$("growthVal"), initialVal=$("initialVal"), convVal=$("convVal"),
+        presentVal=$("presentVal"), losVal=$("losVal"), capKVal=$("capKVal"),
+        capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
   const showAllK=$("showAllK");
-  const capGrowth=$("capGrowth"), capGrowthVal=$("capGrowthVal");
-  const endYear=$("endYear"), endYearVal=$("endYearVal");
   const yearLabel=$("yearLabel");
   const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
 
@@ -202,7 +199,7 @@
   function computeCapacity(T0, g, len){ const C=[T0]; for(let i=1;i<len;i++) C.push(C[i-1]*(1+g)); return C; }
   function shortfallSeries(T,C){ return T.map((v,i)=> (v>C[i] ? v : null)); }
 
-  // Return at most MAX_K_LINES K-crossing years, evenly sampled
+  // Limit to at most MAX_K_LINES and space them across the x-axis span
   function findKYears(ED, K, YEARS_ALL, showAll){
     if (!showAll || K <= 0) return [];
     const hits = [];
@@ -211,8 +208,16 @@
       if (ED[i] >= target) { hits.push(YEARS_ALL[i]); m++; target = K * m; }
     }
     if (hits.length <= MAX_K_LINES) return hits;
-    const step = Math.ceil(hits.length / MAX_K_LINES);
-    return hits.filter((_, i) => i % step === 0).slice(0, MAX_K_LINES);
+
+    const span = hits[hits.length - 1] - hits[0];
+    const minGap = span / (MAX_K_LINES - 1); // target spacing
+    const picked = [hits[0]];
+    let last = hits[0];
+    for (let i = 1; i < hits.length && picked.length < MAX_K_LINES - 1; i++) {
+      if (hits[i] - last >= minGap) { picked.push(hits[i]); last = hits[i]; }
+    }
+    picked[picked.length - 1] = hits[hits.length - 1]; // ensure last
+    return picked;
   }
 
   const cfg={responsive:true, displaylogo:false};
@@ -248,25 +253,16 @@
 
   // init from defaults
   document.getElementById('showAllK').checked = DEFAULTS.showAllK; // false
-  const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
-        los=$("los"), capK=$("capK"), capGrowth=$("capGrowth"), endYear=$("endYear");
-  const growthVal=$("growthVal"), initialVal=$("initialVal"), convVal=$("convVal"),
-        presentVal=$("presentVal"), losVal=$("losVal"), capKVal=$("capKVal"),
-        capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
-  const showAllK=$("showAllK");
-  const yearLabel=$("yearLabel");
-  const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
-
-  let capLinked = true;
-
   let P = readParams();
   showVals(P);
 
+  // simulate
   let YEARS_ALL = makeYears(P.Yend);
   let ED = simulateED(P, YEARS_ALL);
   let T = computeTrolleys(P, ED);
   let C = computeCapacity(T[0], P.gCap, YEARS_ALL.length);
 
+  // historic series
   const histX = YEARS_HIST.slice();
   const histY = HIST_UHL_MW_TOTAL.slice();
   if(histX[0]===2014) histY[0]=P.A0;
@@ -364,4 +360,5 @@
 </script>
 </body>
 </html>
+
 
