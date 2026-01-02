@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,13 +67,8 @@
       align-items:center;
       justify-content:space-between;
     }
-    .accordion-header span {
-      flex:1;
-    }
-    .accordion-header .chevron {
-      font-size: 12px;
-      margin-left: 8px;
-    }
+    .accordion-header span { flex:1; }
+    .accordion-header .chevron { font-size: 12px; margin-left: 8px; flex:0; }
     .accordion-panel {
       display: none;
       padding: 8px 10px 10px;
@@ -81,14 +77,20 @@
       background: #fcfcfc;
       border-radius: 0 0 10px 10px;
     }
-    .accordion.open .accordion-panel {
-      display: block;
-    }
-    .accordion.open .accordion-header {
-      border-bottom: 1px solid #eee;
-    }
+    .accordion.open .accordion-panel { display: block; }
+    .accordion.open .accordion-header { border-bottom: 1px solid #eee; }
+
+    .muted { font-size:11px; color:#555; margin-top:8px; }
+    .src { font-size:11px; color:#444; margin-top:6px; }
+    .kpi { margin-top:10px; }
+    .kpi table { width:100%; border-collapse:collapse; margin-top:8px; font-size:12px; }
+    .kpi th { text-align:left; border-bottom:2px solid #ccc; padding:6px 8px; }
+    .kpi td { border-bottom:1px solid #eee; padding:6px 8px; vertical-align:top; }
+    .kpi tr:last-child td { border-bottom:none; }
+    .quote { margin:6px 0 10px 0; padding-left:10px; border-left:3px solid #eee; font-style:italic; }
   </style>
 </head>
+
 <body>
   <header>
     <div class="brand">
@@ -116,7 +118,7 @@
         <div class="val"><span id="initialVal">55,502</span> people</div>
       </div>
       <div class="control">
-        <label for="conv">Conversion rate (ED → trolley)</label>
+        <label for="conv">ED admission (conversion) rate</label>
         <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
         <div class="val"><span id="convVal">33.3%</span></div>
       </div>
@@ -155,184 +157,146 @@
       <div id="edPlot"></div>
       <div id="trolleyPlot"></div>
     </div>
-
   </div>
 
-  <!-- Additional explanatory sections with accordions -->
+  <!-- Accordions -->
   <div class="section">
-    <!-- Accordion: Notes -->
+
+    <!-- Accordion 1: Notes -->
     <div class="accordion open">
-      <button class="accordion-header">
-        <span>Interface notes and interpretation</span>
+      <button class="accordion-header" type="button">
+        <span>Notes and interpretation</span>
         <span class="chevron">▼</span>
       </button>
       <div class="accordion-panel">
         <ul>
-          <li>Capacity growth is soft-linked to ED growth until the capacity slider is manually adjusted.</li>
-          <li>Dark-red vertical lines show selected multiples of K (critical mass thresholds). Markers are thinned automatically to avoid clutter.</li>
-          <li>Critical mass markers are now shown up to eight threshold levels when supported by the projection horizon.</li>
-          <li>Based on HIQA Appendix 2, approximately 25% of UHL ED attendances are from County Clare (25.2% of Model 4 ED attendances).</li>
-          <li>County-of-residence distribution for UHL, Ennis, Nenagh and St John’s was provided by the University of Limerick Hospitals Group to HIQA.</li>
-          <li>The projection horizon extends to 2075, reflecting an indicative 50-year functional lifespan of a major hospital development.</li>
-          <li>ESRI projections are regional planning estimates and are not intended as direct forecasts of UHL emergency department attendances.</li>
-          <li>The dashboard focuses on operational behaviour (demand, conversion to trolleys, length of stay, shortfall and capacity growth) at UHL.</li>
-          <li>All parameter assumptions are adjustable in real time, in line with the transparency recommendations set out by HIQA.</li>
-          <li>Emergency Medicine Programme (EMP) 2025 indicates ~60,000 annual attendances as the minimum sustainable critical mass for an Emergency Department, with ~150,000+ attendances associated with highly specialised major trauma centres.</li>
+          <li>This dashboard is an operational simulation of emergency care demand and capacity at University Hospital Limerick (UHL). It is intended to complement, not replace, ESRI population-based projections.</li>
+          <li>Historic UHL ED attendances (2014–2025) are used as a baseline. Future values are generated using an adjustable compound annual growth assumption.</li>
+          <li>Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity growth is modelled separately and can be linked to or decoupled from demand growth.</li>
+          <li>Dark red vertical markers indicate critical-mass thresholds (multiples of K). Markers are thinned automatically to avoid visual clutter.</li>
+          <li>Projection horizon extends to 2075 to reflect the indicative lifespan of a major hospital development rather than a prediction of service configuration.</li>
+          <li>HIQA advises that ESRI projections should be interpreted alongside ongoing monitoring of actual demand and site-level analysis.</li>
         </ul>
+
+        <div class="kpi">
+          <p style="margin:10px 0 6px 0; font-size:13px; font-weight:600;">Dashboard-ready summary metrics (HIQA-aligned)</p>
+          <p style="margin:0; font-size:12px;">
+            HIQA analysis indicates that UHL operates with a reported emergency inpatient length of stay of approximately five days,
+            an ED admission rate of around one-third of attendances, and inpatient bed occupancy persistently in excess of safe
+            operational thresholds, reflecting a sustained mismatch between demand and capacity.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>UHL (best supported value)</th>
+                <th>Comparator / context</th>
+                <th>Source (no URLs)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Emergency inpatient length of stay</td>
+                <td>~4.5–5.5 days</td>
+                <td>Model 4 average ~5.5–7.0 days</td>
+                <td>HIQA Work Stream 2 (HIPE-based analysis)</td>
+              </tr>
+              <tr>
+                <td>ED admission (conversion) rate</td>
+                <td>~30–35%</td>
+                <td>Model 4 average ~22–28%</td>
+                <td>HIQA Work Stream 2 (PET + HIPE comparative analysis)</td>
+              </tr>
+              <tr>
+                <td>Inpatient bed occupancy</td>
+                <td>&gt;95% (often ≥100% with escalation capacity)</td>
+                <td>Safe benchmark ≤85–90%</td>
+                <td>HIQA Work Stream 2 and ESRI capacity modelling context</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="muted">
+            Note: Outputs are illustrative and intended for scenario exploration under transparent assumptions. Interpretation should take account of recognised limitations in linking ED (PET) and inpatient (HIPE) datasets and the effects of sustained system constraints.
+          </p>
+
+          <div class="src">
+            <div class="quote">“It is essential that there is ongoing monitoring of actual demand for services relative to the ESRI capacity projections.”</div>
+            <div>Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.10.</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Accordion: Abstract -->
+    <!-- Accordion 2: Abstract -->
     <div class="accordion">
-      <button class="accordion-header">
+      <button class="accordion-header" type="button">
         <span>Abstract – MIDCARE operational dashboard and ESRI projections</span>
         <span class="chevron">▶</span>
       </button>
       <div class="accordion-panel">
-        <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is designed to complement ESRI’s regional, population-based projections by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital.  ESRI projections are regional, scenario-based estimates anchored to 2023 utilisation patterns and are not designed to forecast UHL attendances directly. The MIDCARE dashboard fills this gap by (i) using observed UHL ED activity, (ii) visualising the time path of crowding and capacity shortfall, (iii) highlighting critical-mass exceedance years that ESRI and HIQA do not quantify, and (iv) making key assumptions transparent and adjustable, as recommended by HIQA.</p></p>
+        <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is intended to complement ESRI’s regional, population-based projections by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital. ESRI projections are regional, scenario-based estimates anchored to baseline utilisation patterns and are not designed to forecast UHL attendances directly.</p>
 
-        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as a baseline for a compound annual growth projection to 2075. Trolley demand is derived from ED attendances, an ED-to-admission conversion rate, and average length of stay. Capacity is modelled as a separate growth process and can be soft-linked to demand growth. Critical mass thresholds (multiples of K) are identified algorithmically and displayed as vertical markers. All outputs are dynamically updated when the user adjusts the parameter sliders.</p>
+        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as a baseline for compound annual growth projection to 2075. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers, thinned to reduce clutter.</p>
 
- <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand, and bed capacity at UHL, along with a shortfall series and a set of critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can lead to persistent overcrowding and recurrent breaches of critical thresholds.</p>
+        <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand and capacity, along with a shortfall series and critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can produce persistent overcrowding and recurrent breaches of critical thresholds.</p>
 
-        <p><strong>Conclusions:</strong> This is a dynamic simulation model rather than a static workbook. By exposing assumptions and enabling scenario testing, it operationalises HIQA’s advice that ESRI projections should be interpreted alongside observed demand and site-level analyses. The dashboard provides a decision-support tool for aligning long-term capacity planning with the acute operational realities at UHL.</p>
+        <p><strong>Conclusions:</strong> This is a dynamic simulation model rather than a static workbook. By exposing assumptions and enabling scenario testing, it operationalises HIQA’s advice that ESRI projections should be interpreted alongside observed demand and site-level analyses. The dashboard is intended as decision-support to align long-term capacity planning with operational realities at UHL.</p>
       </div>
     </div>
 
-    <!-- Accordion: Annex 1 -->
+    <!-- Accordion 3: Annex 1 -->
     <div class="accordion">
-      <button class="accordion-header">
+      <button class="accordion-header" type="button">
         <span>Annex 1: Interpretation of ESRI projections in the context of observed emergency department attendances at UHL</span>
         <span class="chevron">▶</span>
       </button>
       <div class="accordion-panel">
-        <h3 style="margin-top:4px;">A1.1 Purpose of this annex</h3>
-        <p>
-          This annex is provided to support decision-making by clarifying how ESRI capacity projections should be
-          interpreted when considered alongside observed emergency department (ED) attendance trends at University
-          Hospital Limerick (UHL). 
-        </p>
-        <p>
-          This annex accompanies the operational dashboard to ensure that site-level data are interpreted consistently
-          with the strategic evidence base used in HIQA's MW review.
-        </p>
+        <h3 style="margin:6px 0 4px 0;">A1.1 Purpose of this annex</h3>
+        <p>This annex supports interpretation of ESRI capacity projections alongside observed emergency department (ED) attendance trends at University Hospital Limerick (UHL). It is provided to ensure that operational, site-level data are interpreted consistently with the strategic evidence base used in the HIQA Mid West review.</p>
 
-        <h3>A1.2 ESRI projections: scope and intended use</h3>
-        <p>
-          The ESRI projections referenced in HIQA's review are population-based, scenario-driven
-          estimates intended to inform long-term planning for acute hospital capacity.
-        </p>
-        <p>
-          The Advice document states:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “The ESRI analyses to inform future service needs project ever-growing demand for services in the Mid West
-          to 2040.”<br>
-          <span style="font-style:normal;">Advice to the Minister for Health to inform decision-making around the design and delivery of urgent and emergency healthcare services in the HSE Mid West, p.9</span>
-        </p>
-        <p>
-          The ESRI estimates that:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “The number of urgent and emergency care presentations at hospitals in the Mid West will increase by between
-          16% and 23% between 2023 and 2040.”<br>
-          <span style="font-style:normal;">Advice to the Minister for Health, p.29</span>
-        </p>
-        <p>
-          These projections are designed to support strategic planning rather than to forecast site-specific emergency
-          department attendances.
-        </p>
-        <p>
-          HIQA explicitly cautions that projections must be interpreted alongside observed demand:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “It is essential that there is ongoing monitoring of actual demand for services relative to the ESRI capacity
-          projections.”<br>
-          <span style="font-style:normal;">Advice to the Minister for Health, p.10</span>
-        </p>
+        <h3 style="margin:10px 0 4px 0;">A1.2 ESRI projections: scope and intended use</h3>
+        <p>The ESRI projections referenced in HIQA’s review are population-based, scenario-driven estimates intended to inform long-term planning for acute hospital capacity. They are regional planning estimates and are not designed to forecast site-specific ED attendances at UHL.</p>
 
-        <h3>A1.3 Observed emergency department attendances at UHL</h3>
-        <p>
-          UHL is the primary Model 4 hospital in the Mid West and therefore absorbs a
-          disproportionately high volume of urgent and emergency care demand.
-        </p>
-        <p>
-          HIQA notes explicitly:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “The Mid West has the highest number of ED attendances of any Model 4 hospital.”<br>
-          <span style="font-style:normal;">Advice to the Minister for Health, p.9</span>
-        </p>
-        <p>
-          This operational dashboard is based on observed ED attendance data at UHL from 2014
-          to 2025. These data show an increase from approximately 55,500 attendances in 2014 to over 95,000 attendances
-          by 2025, representing growth of approximately 72% over an 11-year period.
-        </p>
-        <p>
-          The Expert Advisory Group cautioned against relying on standardised metrics alone when interpreting such demand:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “Presenting only the per capita figures without the absolute figures may be misleading… when in absolute terms,
-          [UHL] actually has a higher number of presentations than other Model 4 hospitals.”<br>
-          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.31 of 32</span>
-        </p>
+        <div class="quote">“The ESRI analyses to inform future service needs project ever-growing demand for services in the Mid West to 2040.”</div>
+        <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.9.</div>
 
-        <h3>A1.4 Key differences between strategic projections and operational analysis</h3>
-        <p>
-          The ESRI projections and the operational dashboard address different but complementary questions.
-        </p>
-        <p>
-          The Expert Advisory Group explicitly recognised limitations in current data and modelling approaches in capturing
-          ED operational pressure:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “Improved qualitative and quantitative measures for overcrowding in the ED are needed.”<br>
-          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.18 of 32</span>
-        </p>
-        <p>
-          In addition, the Group acknowledged that:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “Comparing Model 4 hospitals is imperfect due to the structural differences.”<br>
-          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.18 of 32</span>
-        </p>
-        <p>
-          These structural differences are particularly relevant in the Mid West, where a single ED serves a large and
-          growing catchment.
-        </p>
+        <div class="quote">“The number of urgent and emergency care presentations at hospitals in the Mid West will increase by between 16% and 23% between 2023 and 2040.”</div>
+        <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.29.</div>
 
-        <h3>A1.5 Implications for interpretation and decision-making</h3>
-        <p>
-          HIQA’s analysis concludes that current demand already exceeds available capacity at UHL:
-        </p>
-        <p style="margin-left:1.2em;font-style:italic;">
-          “Data available to HIQA shows that demand for urgent and emergency healthcare services and inpatient care
-          continues to outpace available bed capacity at UHL.”<br>
-          <span style="font-style:normal;">Advice to the Minister for Health, p.29</span>
-        </p>
-        <p>
-          When considered alongside observed ED attendance growth at UHL, this indicates that ESRI projections—while
-          essential for long-term planning—do not fully describe the scale or immediacy of operational pressure at the
-          site.
-        </p>
-        <p>
-          Accordingly, ESRI projections should be interpreted as planning envelopes rather than forecasts of UHL ED
-          attendances, and should be complemented by site-specific monitoring and operational analysis.
-        </p>
+        <div class="quote">“It is essential that there is ongoing monitoring of actual demand for services relative to the ESRI capacity projections.”</div>
+        <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.10.</div>
 
-        <h3>A1.6 Conclusion</h3>
-        <p>
-          This annex supports the conclusion set out in HIQA's review that decisions regarding urgent
-          and emergency healthcare services in the Mid West should be informed by both strategic projections and observed
-          site-level evidence.
-        </p>
-        <p>
-          The dashboard provides an operational complement to ESRI projections and reinforces the need for continued
-          monitoring of ED attendances and demand–capacity mismatch at UHL, alongside long-term planning to address
-          future service needs.
-        </p>
+        <h3 style="margin:10px 0 4px 0;">A1.3 Observed emergency department attendances at UHL</h3>
+        <p>UHL is the primary Model 4 hospital in the Mid West and absorbs a high volume of urgent and emergency care demand. The dashboard baseline uses observed ED attendances (2014–2025) to illustrate the scale and trajectory of demand at the site level.</p>
+
+        <div class="quote">“The Mid West has the highest number of ED attendances of any Model 4 hospital.”</div>
+        <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.9.</div>
+
+        <div class="quote">“Presenting only the per capita figures without the absolute figures may be misleading… when in absolute terms, [UHL] actually has a higher number of presentations than other Model 4 hospitals.”</div>
+        <div class="src">Source: HIQA Expert Advisory Group – Membership and Minutes, p.31 of 32.</div>
+
+        <h3 style="margin:10px 0 4px 0;">A1.4 Key differences between strategic projections and operational analysis</h3>
+        <p>The ESRI projections and the operational dashboard address different but complementary questions. ESRI projections support strategic, regional planning. The dashboard supports operational scenario exploration anchored in observed UHL activity and makes assumptions explicit.</p>
+
+        <div class="quote">“Improved qualitative and quantitative measures for overcrowding in the ED are needed.”</div>
+        <div class="src">Source: HIQA Expert Advisory Group – Membership and Minutes, p.18 of 32.</div>
+
+        <div class="quote">“Comparing Model 4 hospitals is imperfect due to the structural differences.”</div>
+        <div class="src">Source: HIQA Expert Advisory Group – Membership and Minutes, p.18 of 32.</div>
+
+        <h3 style="margin:10px 0 4px 0;">A1.5 Implications for interpretation and decision-making</h3>
+        <p>HIQA evidence indicates that demand for urgent and emergency care and inpatient capacity at UHL remains mismatched. Accordingly, ESRI projections should be interpreted as planning envelopes and complemented by site-level monitoring and operational analysis.</p>
+
+        <div class="quote">“Data available to HIQA shows that demand for urgent and emergency healthcare services and inpatient care continues to outpace available bed capacity at UHL.”</div>
+        <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.29.</div>
+
+        <h3 style="margin:10px 0 4px 0;">A1.6 Conclusion</h3>
+        <p>ESRI projections and the dashboard serve distinct but complementary purposes. Strategic planning should be informed by ESRI regional projections, while operational planning and risk management require ongoing monitoring of observed UHL ED attendances and demand–capacity mismatch at the site level.</p>
       </div>
     </div>
+
   </div>
 
 <script>
@@ -620,19 +584,17 @@
   setDefaults();
   render(1);
 
-  // Accordion JS
+  // Accordion JS (single-open behaviour)
   const accordions = document.querySelectorAll('.accordion');
   accordions.forEach(acc => {
     const header = acc.querySelector('.accordion-header');
     header.addEventListener('click', () => {
       const isOpen = acc.classList.contains('open');
-      // close others
       accordions.forEach(a => {
         a.classList.remove('open');
         const chev = a.querySelector('.chevron');
         if (chev) chev.textContent = '▶';
       });
-      // toggle this one
       if (!isOpen) {
         acc.classList.add('open');
         const chev = acc.querySelector('.chevron');
