@@ -1,366 +1,649 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MIDCARE© Operational — UHL ED Attendees</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIDCARE© Operational — UHL ED Attendees</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 
-<style>
-:root { --gap: 10px; --plot-h: 260px; }
-* { box-sizing: border-box; }
+  <style>
+    :root { --gap: 10px; --plot-h: 260px; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; background:#fff; }
+    header { padding: 10px 12px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+    .brand { display:flex; align-items:center; gap:8px; }
+    .brand img { height:32px; width:auto; }
+    .brand h1 { margin:0; font-size:16px; letter-spacing:.2px; font-weight:600; }
+    .toolbar { display:flex; gap:6px; align-items:center; font-size:12px; }
+    .btn { padding:4px 8px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.05); font-weight:600; font-size:12px; }
+    .btn:disabled { opacity:.55; cursor:default; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 10px; }
 
-body {
-  margin: 0;
-  font-family: Poppins, Arial, sans-serif;
-  color:#111;
-  background:#fff;
-}
+    .controls { display:grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: var(--gap); margin: 8px 0 10px; }
+    @media (max-width: 1100px){ .controls{grid-template-columns: repeat(3, minmax(200px, 1fr));} }
+    @media (max-width: 860px){ .controls{grid-template-columns: repeat(2, minmax(200px, 1fr));} }
+    @media (max-width: 560px){ .controls{grid-template-columns: 1fr;} }
 
-header {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  flex-wrap:wrap;
-}
+    .control { background:#fafafa; border:1px solid #eee; border-radius:10px; padding:8px; box-shadow:0 1px 2px rgba(0,0,0,.04) }
+    .control label { display:block; font-weight:600; font-size:11px; margin-bottom:4px; }
+    .control input[type=range], .control select { width:100%; }
+    .control input[type=range] { height: 18px; }
+    .val { font-variant-numeric: tabular-nums; font-size:11px; color:#444; margin-top:2px; }
+    .toggle { display:flex; align-items:center; gap:6px; font-size:11px; color:#444; margin-top:4px; }
 
-.brand { display:flex; align-items:center; gap:8px; }
-.brand img { height:32px; width:auto; }
-.brand h1 { margin:0; font-size:16px; font-weight:600; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items:stretch; }
+    @media (max-width: 980px){ .grid { grid-template-columns:1fr; } }
+    #edPlot, #trolleyPlot{height:var(--plot-h)}
 
-.toolbar { display:flex; gap:6px; align-items:center; font-size:12px; }
-.btn {
-  padding:4px 8px;
-  border:1px solid #ddd;
-  background:#fff;
-  border-radius:10px;
-  cursor:pointer;
-  box-shadow:0 1px 2px rgba(0,0,0,.05);
-  font-weight:600;
-  font-size:12px;
-}
-.btn:disabled { opacity:.55; cursor:default; }
+    /* Text sections below dashboard */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4px 12px 16px;
+    }
 
-.wrap { max-width: 1200px; margin: 0 auto; padding: 10px; }
-
-.controls {
-  display:grid;
-  grid-template-columns: repeat(4, minmax(200px, 1fr));
-  gap: var(--gap);
-  margin: 8px 0 10px;
-}
-@media (max-width: 1100px){ .controls{grid-template-columns: repeat(3, minmax(200px, 1fr));} }
-@media (max-width: 860px){ .controls{grid-template-columns: repeat(2, minmax(200px, 1fr));} }
-@media (max-width: 560px){ .controls{grid-template-columns: 1fr;} }
-
-.control {
-  background:#fafafa;
-  border:1px solid #eee;
-  border-radius:10px;
-  padding:8px;
-  box-shadow:0 1px 2px rgba(0,0,0,.04)
-}
-.control label { display:block; font-weight:600; font-size:11px; margin-bottom:4px; }
-.control input[type=range], .control select { width:100%; }
-.val { font-size:11px; color:#444; margin-top:2px; }
-
-.toggle { display:flex; align-items:center; gap:6px; font-size:11px; color:#444; margin-top:4px; }
-
-.grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
-@media (max-width: 980px){ .grid { grid-template-columns:1fr; } }
-#edPlot, #trolleyPlot{height:var(--plot-h)}
-
-.section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 6px 12px 18px;
-}
-
-.accordion {
-  border: 1px solid #eee;
-  border-radius: 10px;
-  margin-top: 10px;
-  background: #fafafa;
-}
-.accordion-header {
-  width: 100%;
-  text-align: left;
-  padding: 8px 10px;
-  border: none;
-  background: #f3f3f3;
-  border-radius: 10px 10px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.accordion-header .chevron { font-size: 12px; }
-.accordion-panel {
-  display: none;
-  padding: 8px 10px 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  background: #fcfcfc;
-  border-radius: 0 0 10px 10px;
-}
-.accordion.open .accordion-panel { display: block; }
-</style>
+    /* Simple accordion */
+    .accordion {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      margin-top: 10px;
+      background: #fafafa;
+      box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+    .accordion-header {
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border: none;
+      background: #f3f3f3;
+      border-radius: 10px 10px 0 0;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .accordion-header span {
+      flex:1;
+    }
+    .accordion-header .chevron {
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .accordion-panel {
+      display: none;
+      padding: 8px 10px 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      background: #fcfcfc;
+      border-radius: 0 0 10px 10px;
+    }
+    .accordion.open .accordion-panel {
+      display: block;
+    }
+    .accordion.open .accordion-header {
+      border-bottom: 1px solid #eee;
+    }
+  </style>
 </head>
-
 <body>
+  <header>
+    <div class="brand">
+      <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png" alt="MIDCARE / HSML Logo">
+      <h1>MIDCARE© Operational — UHL ED Attendees</h1>
+    </div>
+    <div class="toolbar">
+      <button id="run" class="btn">▶ Run</button>
+      <button id="pause" class="btn" disabled>⏸ Pause</button>
+      <button id="reset" class="btn">⟲ Reset</button>
+      <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2014</span>
+    </div>
+  </header>
 
-<header>
-  <div class="brand">
-    <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png">
-    <h1>MIDCARE© Operational — UHL ED Attendees</h1>
+  <div class="wrap">
+    <div class="controls">
+      <div class="control">
+        <label for="growth">Annual ED growth rate (CAGR)</label>
+        <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
+        <div class="val"><span id="growthVal">4.60%</span> / yr</div>
+      </div>
+      <div class="control">
+        <label for="initial">Initial attendees (2014)</label>
+        <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
+        <div class="val"><span id="initialVal">55,502</span> people</div>
+      </div>
+      <div class="control">
+        <label for="conv">Conversion rate (ED → trolley)</label>
+        <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
+        <div class="val"><span id="convVal">33.3%</span></div>
+      </div>
+      <div class="control">
+        <label for="present">Average presentations per day</label>
+        <input id="present" type="range" min="0" max="500" step="1" value="152">
+        <div class="val"><span id="presentVal">152</span> per day</div>
+      </div>
+      <div class="control">
+        <label for="los">Average length of stay (days) — always applied</label>
+        <input id="los" type="range" min="0" max="60" step="0.1" value="5">
+        <div class="val"><span id="losVal">5.0</span> days</div>
+      </div>
+      <div class="control">
+        <label for="capK">Critical mass / cap K (for markers)</label>
+        <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
+        <div class="val"><span id="capKVal">60,000</span> people</div>
+        <div class="toggle">
+          <input id="showAllK" type="checkbox" autocomplete="off" checked>
+          <label for="showAllK">Show all multiples of K (thinned)</label>
+        </div>
+      </div>
+      <div class="control">
+        <label for="capGrowth">Annual trolley capacity growth</label>
+        <input id="capGrowth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
+        <div class="val"><span id="capGrowthVal">4.6%</span> / yr</div>
+      </div>
+      <div class="control">
+        <label for="endYear">Projection end year</label>
+        <input id="endYear" type="range" min="2025" max="2075" step="1" value="2075">
+        <div class="val"><span id="endYearVal">2075</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div id="edPlot"></div>
+      <div id="trolleyPlot"></div>
+    </div>
+
   </div>
-  <div class="toolbar">
-    <button id="run" class="btn">▶ Run</button>
-    <button id="pause" class="btn" disabled>⏸ Pause</button>
-    <button id="reset" class="btn">⟲ Reset</button>
-    <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2014</span>
-  </div>
-</header>
 
-<div class="wrap">
+  <!-- Additional explanatory sections with accordions -->
+  <div class="section">
+    <!-- Accordion: Notes -->
+    <div class="accordion open">
+      <button class="accordion-header">
+        <span>Interface notes and interpretation</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="accordion-panel">
+        <ul>
+          <li>Capacity growth is soft-linked to ED growth until the capacity slider is manually adjusted.</li>
+          <li>Dark-red vertical lines show selected multiples of K (critical mass thresholds). Markers are thinned automatically to avoid clutter.</li>
+          <li>Critical mass markers are now shown up to eight threshold levels when supported by the projection horizon.</li>
+          <li>Based on HIQA Appendix 2, approximately 25% of UHL ED attendances are from County Clare (25.2% of Model 4 ED attendances).</li>
+          <li>County-of-residence distribution for UHL, Ennis, Nenagh and St John’s was provided by the University of Limerick Hospitals Group to HIQA.</li>
+          <li>The projection horizon extends to 2075, reflecting an indicative 50-year functional lifespan of a major hospital development.</li>
+          <li>ESRI projections are regional planning estimates and are not intended as direct forecasts of UHL emergency department attendances.</li>
+          <li>The dashboard focuses on operational behaviour (demand, conversion to trolleys, length of stay, shortfall and capacity growth) at UHL.</li>
+          <li>All parameter assumptions are adjustable in real time, in line with the transparency recommendations set out by HIQA.</li>
+          <li>Emergency Medicine Programme (EMP) 2025 indicates ~60,000 annual attendances as the minimum sustainable critical mass for an Emergency Department, with ~150,000+ attendances associated with highly specialised major trauma centres.</li>
+        </ul>
+      </div>
+    </div>
 
-<div class="controls">
+    <!-- Accordion: Abstract -->
+    <div class="accordion">
+      <button class="accordion-header">
+        <span>Abstract – MIDCARE operational dashboard and ESRI projections</span>
+        <span class="chevron">▶</span>
+      </button>
+      <div class="accordion-panel">
+        <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is designed to complement ESRI’s regional, population-based projections by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital.</p>
 
-  <div class="control">
-    <label>Annual ED growth rate (CAGR)</label>
-    <input id="growth" type="range" min="0" max="0.15" step="0.0005" value="0.046">
-    <div class="val"><span id="growthVal">4.6%</span> / yr</div>
-  </div>
+        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as a baseline for a compound annual growth projection to 2075. Trolley demand is derived from ED attendances, an ED-to-admission conversion rate, and average length of stay. Capacity is modelled as a separate growth process and can be soft-linked to demand growth. Critical mass thresholds (multiples of K) are identified algorithmically and displayed as vertical markers. All outputs are dynamically updated when the user adjusts the parameter sliders.</p>
 
-  <div class="control">
-    <label>Initial attendees (2014)</label>
-    <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
-    <div class="val"><span id="initialVal">55,502</span> people</div>
-  </div>
+        <p><strong>Gaps filled relative to ESRI:</strong> ESRI projections are regional, scenario-based estimates anchored to 2023 utilisation patterns and are not designed to forecast UHL attendances directly. The MIDCARE dashboard fills this gap by (i) using observed UHL ED activity, (ii) visualising the time path of crowding and capacity shortfall, (iii) highlighting critical-mass exceedance years that ESRI and HIQA do not quantify, and (iv) making key assumptions transparent and adjustable, as recommended by HIQA.</p>
 
-  <div class="control">
-    <label>Conversion rate (ED → trolley)</label>
-    <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
-    <div class="val"><span id="convVal">33.3%</span></div>
-  </div>
+        <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand, and bed capacity at UHL, along with a shortfall series and a set of critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can lead to persistent overcrowding and recurrent breaches of critical thresholds.</p>
 
-  <div class="control">
-    <label>Average presentations per day</label>
-    <input id="present" type="range" min="0" max="500" step="1" value="152">
-    <div class="val"><span id="presentVal">152</span> per day</div>
-  </div>
+        <p><strong>Conclusions:</strong> This is a dynamic simulation model rather than a static workbook. By exposing assumptions and enabling scenario testing, it operationalises HIQA’s advice that ESRI projections should be interpreted alongside observed demand and site-level analyses. The dashboard provides a decision-support tool for aligning long-term capacity planning with the acute operational realities at UHL.</p>
+      </div>
+    </div>
 
-  <div class="control">
-    <label>Average length of stay (days)</label>
-    <input id="los" type="range" min="0" max="60" step="0.1" value="5">
-    <div class="val"><span id="losVal">5.0</span> days</div>
-  </div>
+    <!-- Accordion: Annex 1 -->
+    <div class="accordion">
+      <button class="accordion-header">
+        <span>Annex 1: Interpretation of ESRI projections in the context of observed emergency department attendances at UHL</span>
+        <span class="chevron">▶</span>
+      </button>
+      <div class="accordion-panel">
+        <h3 style="margin-top:4px;">A1.1 Purpose of this annex</h3>
+        <p>
+          This annex is provided to support decision-making by clarifying how ESRI capacity projections should be
+          interpreted when considered alongside observed emergency department (ED) attendance trends at University
+          Hospital Limerick (UHL). It should be read in conjunction with Section 3 (Current demand and capacity),
+          Section 5 (Future demand and capacity requirements) and Section 7 (Risks and implications for patient safety)
+          of the main report.
+        </p>
+        <p>
+          This annex accompanies the operational dashboard to ensure that site-level data are interpreted consistently
+          with the strategic evidence base used in this review.
+        </p>
 
-  <div class="control">
-    <label>Critical mass / cap K (for markers)</label>
-    <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
-    <div class="val"><span id="capKVal">60,000</span> people</div>
-    <div class="toggle">
-      <input id="showAllK" type="checkbox" checked>
-      <label>Show all multiples of K</label>
+        <h3>A1.2 ESRI projections: scope and intended use</h3>
+        <p>
+          As outlined in Section 5, the ESRI projections referenced in this review are population-based, scenario-driven
+          estimates intended to inform long-term planning for acute hospital capacity.
+        </p>
+        <p>
+          The Advice document states:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “The ESRI analyses to inform future service needs project ever-growing demand for services in the Mid West
+          to 2040.”<br>
+          <span style="font-style:normal;">Advice to the Minister for Health to inform decision-making around the design and delivery of urgent and emergency healthcare services in the HSE Mid West, p.9</span>
+        </p>
+        <p>
+          The ESRI estimates that:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “The number of urgent and emergency care presentations at hospitals in the Mid West will increase by between
+          16% and 23% between 2023 and 2040.”<br>
+          <span style="font-style:normal;">Advice to the Minister for Health, p.29</span>
+        </p>
+        <p>
+          These projections are designed to support strategic planning rather than to forecast site-specific emergency
+          department attendances.
+        </p>
+        <p>
+          HIQA explicitly cautions that projections must be interpreted alongside observed demand:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “It is essential that there is ongoing monitoring of actual demand for services relative to the ESRI capacity
+          projections.”<br>
+          <span style="font-style:normal;">Advice to the Minister for Health, p.10</span>
+        </p>
+
+        <h3>A1.3 Observed emergency department attendances at UHL</h3>
+        <p>
+          As set out in Section 3, UHL is the sole Model 4 hospital in the Mid West and therefore absorbs a
+          disproportionately high volume of urgent and emergency care demand.
+        </p>
+        <p>
+          HIQA notes explicitly:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “The Mid West has the highest number of ED attendances of any Model 4 hospital.”<br>
+          <span style="font-style:normal;">Advice to the Minister for Health, p.9</span>
+        </p>
+        <p>
+          The operational dashboard accompanying this review is based on observed ED attendance data at UHL from 2014
+          to 2025. These data show an increase from approximately 55,500 attendances in 2014 to over 95,000 attendances
+          by 2025, representing growth of approximately 72% over an 11-year period.
+        </p>
+        <p>
+          The Expert Advisory Group cautioned against relying on standardised metrics alone when interpreting such demand:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “Presenting only the per capita figures without the absolute figures may be misleading… when in absolute terms,
+          [UHL] actually has a higher number of presentations than other Model 4 hospitals.”<br>
+          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.31 of 32</span>
+        </p>
+
+        <h3>A1.4 Key differences between strategic projections and operational analysis</h3>
+        <p>
+          The ESRI projections and the operational dashboard address different but complementary questions.
+        </p>
+        <p>
+          The Expert Advisory Group explicitly recognised limitations in current data and modelling approaches in capturing
+          ED operational pressure:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “Improved qualitative and quantitative measures for overcrowding in the ED are needed.”<br>
+          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.18 of 32</span>
+        </p>
+        <p>
+          In addition, the Group acknowledged that:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “Comparing Model 4 hospitals is imperfect due to the structural differences.”<br>
+          <span style="font-style:normal;">Expert Advisory Group – Membership and Minutes, p.18 of 32</span>
+        </p>
+        <p>
+          These structural differences are particularly relevant in the Mid West, where a single ED serves a large and
+          growing catchment.
+        </p>
+
+        <h3>A1.5 Implications for interpretation and decision-making</h3>
+        <p>
+          HIQA’s analysis concludes that current demand already exceeds available capacity at UHL:
+        </p>
+        <p style="margin-left:1.2em;font-style:italic;">
+          “Data available to HIQA shows that demand for urgent and emergency healthcare services and inpatient care
+          continues to outpace available bed capacity at UHL.”<br>
+          <span style="font-style:normal;">Advice to the Minister for Health, p.29</span>
+        </p>
+        <p>
+          When considered alongside observed ED attendance growth at UHL, this indicates that ESRI projections—while
+          essential for long-term planning—do not fully describe the scale or immediacy of operational pressure at the
+          site.
+        </p>
+        <p>
+          Accordingly, ESRI projections should be interpreted as planning envelopes rather than forecasts of UHL ED
+          attendances, and should be complemented by site-specific monitoring and operational analysis.
+        </p>
+
+        <h3>A1.6 Conclusion</h3>
+        <p>
+          This annex supports the conclusion set out in Section 8 (Conclusions and advice) that decisions regarding urgent
+          and emergency healthcare services in the Mid West should be informed by both strategic projections and observed
+          site-level evidence.
+        </p>
+        <p>
+          The dashboard provides an operational complement to ESRI projections and reinforces the need for continued
+          monitoring of ED attendances and demand–capacity mismatch at UHL, alongside long-term planning to address
+          future service needs.
+        </p>
+      </div>
     </div>
   </div>
 
-  <div class="control">
-    <label>Annual trolley capacity growth</label>
-    <input id="capGrowth" type="range" min="0" max="0.15" step="0.0005" value="0.046">
-    <div class="val"><span id="capGrowthVal">4.6%</span> / yr</div>
-  </div>
-
-  <div class="control">
-    <label>Projection end year</label>
-    <input id="endYear" type="range" min="2025" max="2075" step="1" value="2075">
-    <div class="val"><span id="endYearVal">2075</span></div>
-  </div>
-
-</div>
-
-<div class="grid">
-  <div id="edPlot"></div>
-  <div id="trolleyPlot"></div>
-</div>
-
-</div>
-
-<!-- ===================== -->
-<!--  ACCORDION SECTIONS   -->
-<!-- ===================== -->
-
-<div class="section">
-
-<!-- NOTES -->
-<div class="accordion open">
-  <button class="accordion-header">
-    <span>Interface notes and interpretation</span>
-    <span class="chevron">▼</span>
-  </button>
-  <div class="accordion-panel">
-    <ul>
-      <li>Capacity growth is soft-linked to ED growth until capacity is manually adjusted.</li>
-      <li>Vertical red lines show multiples of K (critical mass). Up to eight markers are displayed.</li>
-      <li>EMP 2025 indicates ~60,000 attendances per year as minimum sustainable critical mass for an ED and ~150,000+ for highly specialised major trauma centres.</li>
-      <li>Approximately 25% of UHL ED attendees are Clare residents.</li>
-      <li>Projection horizon extends to 2075, consistent with assumed 50-year hospital lifespan.</li>
-      <li>ESRI projections are regional estimates and not site-specific ED forecasts.</li>
-      <li>This dashboard focuses on UHL operational behaviour and demand–capacity mismatch.</li>
-    </ul>
-  </div>
-</div>
-
-<!-- ABSTRACT -->
-<div class="accordion">
-  <button class="accordion-header">
-    <span>Abstract – MIDCARE operational dashboard and ESRI projections</span>
-    <span class="chevron">▶</span>
-  </button>
-  <div class="accordion-panel">
-    <p><strong>Background:</strong> The MIDCARE operational model provides a dynamic, site-specific representation of emergency care demand, trolley pressure and capacity at University Hospital Limerick (UHL), complementing ESRI’s regional projections.</p>
-    <p><strong>Methods:</strong> Historic ED attendances 2014-2025 are projected forward using compound growth. Trolley demand is derived from attendances, conversion to admission and length of stay. Capacity growth is modelled separately. Critical-mass breach years are detected automatically.</p>
-    <p><strong>Gaps filled relative to ESRI:</strong> ESRI projections are regional, scenario-based and non-operational. This model is site-level, dynamic and interactive, displaying congestion and critical thresholds not measured in HIQA/ESRI frameworks.</p>
-    <p><strong>Results:</strong> The dashboard shows time paths of demand, capacity and shortfall and reveals how small growth variations produce large overcrowding effects over time.</p>
-    <p><strong>Conclusions:</strong> The model operationalises transparency recommendations by making assumptions explicit and testable in real time.</p>
-  </div>
-</div>
-
-<!-- ANNEX 1 (FULL TEXT) -->
-<div class="accordion">
-  <button class="accordion-header">
-    <span>Annex 1: Interpretation of ESRI projections in the context of UHL ED attendances</span>
-    <span class="chevron">▶</span>
-  </button>
-  <div class="accordion-panel">
-    <!-- full annex text exactly as supplied -->
-    <p><strong>A1.1 Purpose of this annex</strong> … [keep your full annex text here verbatim]</p>
-  </div>
-</div>
-
-</div>
-
 <script>
 (function(){
+  const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
-const YEARS_HIST=[2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
-const HIST=[55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
+  const DEFAULTS = {
+    growth: 0.046,
+    initial: 55502,
+    conv: 0.333,
+    present: 152,
+    los: 5,
+    capK: 60000,
+    showAllK: true,
+    capGrowth: 0.046,
+    endYear: 2075
+  };
 
-const MAX_K_LINES = 8;
+  const MAX_K_LINES = 8;
 
-const $=id=>document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-function pct(v){return(100*v).toFixed(1)+"%";}
-function fmt(v){return(+v).toLocaleString();}
-function yearsTo(end){let a=[];for(let y=2014;y<=end;y++)a.push(y);return a;}
+  const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
+        los=$("los"), capK=$("capK"), capGrowth=$("capGrowth"), endYear=$("endYear");
 
-function simulateED(r,a0,years){
- let out=[a0];
- for(let i=1;i<years.length;i++)out.push(out[i-1]*(1+r));
- return out;
-}
+  const growthVal=$("growthVal"), initialVal=$("initialVal"), convVal=$("convVal"),
+        presentVal=$("presentVal"), losVal=$("losVal"), capKVal=$("capKVal"),
+        capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
 
-function trolleys(ed,conv,los){
- const base=conv*152;
- return ed.map(v=>base*(v/ed[0])*los);
-}
+  const showAllK=$("showAllK");
+  const yearLabel=$("yearLabel");
+  const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
 
-function capacity(t0,g,n){
- const c=[t0];
- for(let i=1;i<n;i++)c.push(c[i-1]*(1+g));
- return c;
-}
+  let capLinked = true;
 
-function kYears(ed,K,yrs){
- let out=[],m=1,target=K;
- for(let i=0;i<ed.length;i++){
-   if(ed[i]>=target){out.push(yrs[i]);m++;target=K*m;}
- }
- if(out.length<=MAX_K_LINES)return out;
- return out.slice(0,MAX_K_LINES);
-}
+  const pct = v => (v*100).toFixed(1)+"%";
+  const fmt = v => (+v).toLocaleString();
+  const makeYears = (end)=>{ const a=[]; for(let y=2014;y<=end;y++) a.push(y); return a; };
 
-function yRange(a){
- const v=a.filter(x=>isFinite(x));
- let mn=Math.min(...v),mx=Math.max(...v);
- let p=(mx-mn)*0.1;
- return [Math.max(0,mn-p),mx+p];
-}
+  function readParams(){
+    return {
+      r: +growth.value,
+      A0: +initial.value,
+      pConv: +conv.value,
+      pDay: +present.value,
+      LOS: +los.value,
+      K: +capK.value,
+      showAll: showAllK.checked,
+      gCap: +capGrowth.value,
+      Yend: parseInt(endYear.value,10)
+    };
+  }
 
-function shortfall(d,c){return d.map((v,i)=>v>c[i]?v:null);}
+  function showVals(p){
+    growthVal.textContent=pct(p.r);
+    initialVal.textContent=fmt(p.A0);
+    convVal.textContent=pct(p.pConv);
+    presentVal.textContent=p.pDay.toFixed(0);
+    losVal.textContent=p.LOS.toFixed(1);
+    capKVal.textContent=fmt(p.K);
+    capGrowthVal.textContent=pct(p.gCap);
+    endYearVal.textContent=String(p.Yend);
+  }
 
-let params={
- r:+$("growth").value,
- a0:+$("initial").value,
- conv:+$("conv").value,
- los:+$("los").value,
- k:+$("capK").value,
- cg:+$("capGrowth").value,
- end:+$("endYear").value
-};
+  function simulateED(p, YEARS_ALL){
+    const A=[p.A0];
+    for(let i=1;i<YEARS_ALL.length;i++) A.push(A[i-1]*(1+p.r));
+    return A;
+  }
 
-function read(){
- params.r=+growth.value;
- params.a0=+initial.value;
- params.conv=+conv.value;
- params.los=+los.value;
- params.k=+capK.value;
- params.cg=+capGrowth.value;
- params.end=+endYear.value;
-}
+  function computeTrolleys(p, ED){
+    const T0 = p.pConv * p.pDay;
+    const scale = ED.map(v => (ED[0]?v/ED[0]:1));
+    let T = scale.map(f => T0*f);
+    T = T.map(v => v*p.LOS);
+    return T;
+  }
 
-function renderAll(){
- read();
+  function computeCapacity(T0, g, len){
+    const C=[T0];
+    for(let i=1;i<len;i++) C.push(C[i-1]*(1+g));
+    return C;
+  }
 
- const yrs=yearsTo(params.end);
- const ed=simulateED(params.r,params.a0,yrs);
- const tr=trolleys(ed,params.conv,params.los);
- const cap=capacity(tr[0],params.cg,yrs.length);
+  function shortfallSeries(T,C){
+    return T.map((v,i)=> (v>C[i] ? v : null));
+  }
 
- const kyrs=kYears(ed,params.k,yrs);
+  function findKYears(ED, K, YEARS_ALL, showAll){
+    if (!showAll || K <= 0) return [];
+    const hits = [];
+    let m = 1, target = K;
+    for (let i = 0; i < ED.length; i++) {
+      if (ED[i] >= target) {
+        hits.push(YEARS_ALL[i]);
+        m++;
+        target = K * m;
+      }
+    }
+    if (hits.length <= MAX_K_LINES) return hits;
 
- const layout1={
-  xaxis:{title:"Year"},
-  yaxis:{title:"People",range:yRange(ed.concat(HIST))},
-  shapes:kyrs.map(y=>({type:"line",x0:y,x1:y,y0:0,y1:1,xref:"x",yref:"paper",line:{color:"darkred",dash:"dash"}}))
- };
+    const span = hits[hits.length - 1] - hits[0];
+    const minGap = span / (MAX_K_LINES - 1);
+    const picked = [hits[0]];
+    let last = hits[0];
 
- Plotly.newPlot("edPlot",[
-  {x:YEARS_HIST,y:HIST,name:"Historic"},
-  {x:yrs,y:ed,name:"Projected"}
- ],layout1);
+    for (let i = 1; i < hits.length && picked.length < MAX_K_LINES - 1; i++) {
+      if (hits[i] - last >= minGap) {
+        picked.push(hits[i]);
+        last = hits[i];
+      }
+    }
+    picked[picked.length - 1] = hits[hits.length - 1];
+    return picked;
+  }
 
- const layout2={
-  xaxis:{title:"Year"},
-  yaxis:{title:"Trolleys (Cubicles)",range:yRange(tr.concat(cap))}
- };
+  const cfg={responsive:true, displaylogo:false};
 
- Plotly.newPlot("trolleyPlot",[
-  {x:yrs,y:tr,name:"Demand"},
-  {x:yrs,y:cap,name:"Capacity"},
-  {x:yrs,y:shortfall(tr,cap),fill:"tozeroy",name:"Shortfall"}
- ],layout2);
-}
+  function yRangeFrom(arr){
+    const vals=arr.filter(v=>typeof v==="number"&&isFinite(v));
+    const min=Math.min(...vals), max=Math.max(...vals);
+    const span=Math.max(1,max-min);
+    const pad=Math.max(1,span*0.12);
+    return [Math.max(0,min-pad),max+pad];
+  }
 
-["growth","initial","conv","los","capK","capGrowth","endYear"]
-.forEach(id=>$(id).addEventListener("input",renderAll));
+  function layoutED(range,kYears,end){
+    const shapes=[],ann=[];
+    kYears.forEach(yr=>{
+      shapes.push({
+        type:'line',
+        x0:yr,x1:yr,y0:range[0],y1:range[1],
+        line:{color:'rgba(139,0,0,.8)',width:2,dash:'dash'}
+      });
+      ann.push({
+        x:yr,
+        y:range[1]-((range[1]-range[0])*0.04),
+        text:String(yr),
+        yanchor:'top',
+        showarrow:false,
+        font:{size:10,color:'rgba(139,0,0,.9)'}
+      });
+    });
+    return {
+      margin:{l:54,r:10,t:6,b:36},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},
+      showlegend:true,
+      legend:{orientation:'h',y:-0.25,font:{size:10}},
+      shapes,
+      annotations:ann
+    };
+  }
 
-renderAll();
+  function layoutT(range,end){
+    return {
+      margin:{l:54,r:10,t:6,b:36},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},
+      showlegend:true,
+      legend:{orientation:'h',y:-0.25,font:{size:10}}
+    };
+  }
 
-// accordion toggle
-document.querySelectorAll(".accordion-header").forEach(h=>{
- h.addEventListener("click",()=>{
-  h.parentElement.classList.toggle("open");
- });
-});
+  let histX = YEARS_HIST.slice();
+  let histY = HIST_UHL_MW_TOTAL.slice();
+
+  function updateHistoricSeries(P){
+    if (histX[0] === 2014) histY[0] = P.A0;
+  }
+
+  showAllK.checked = DEFAULTS.showAllK;
+  let P = readParams();
+  showVals(P);
+
+  let YEARS_ALL = makeYears(P.Yend);
+  let ED = simulateED(P, YEARS_ALL);
+  let T = computeTrolleys(P, ED);
+  let C = computeCapacity(T[0], P.gCap, YEARS_ALL.length);
+
+  updateHistoricSeries(P);
+
+  let kYears = findKYears(ED,P.K,YEARS_ALL,P.showAll);
+  let yE = yRangeFrom(histY.concat(ED));
+  let yT = yRangeFrom(T.concat(C));
+
+  Plotly.newPlot("edPlot",[
+    {x: histX, y: histY, name: "Historic UHL total", mode: "lines", line: {color:"#d62728",width:2}},
+    {x: [2014], y: [P.A0], name: "ED (sim)", mode: "lines", line: {color:"#1f77b4",width:3}}
+  ], layoutED(yE,kYears,P.Yend), cfg);
+
+  Plotly.newPlot("trolleyPlot",[
+    {x:[2014],y:[T[0]],name:"Demand",mode:"lines",line:{color:"#2ca02c",width:3}},
+    {x:[2014],y:[C[0]],name:"Capacity",mode:"lines",line:{color:"#9467bd",width:2}},
+    {x:[2014],y:[null],name:"Shortfall (demand > capacity)",mode:"lines",line:{color:"#ff7f0e",width:0},fill:"tozeroy",fillcolor:"rgba(255,127,14,0.28)"}
+  ], layoutT(yT,P.Yend), cfg);
+
+  let frameIdx=1, timer=null, ms=120;
+
+  function render(i){
+    const x=YEARS_ALL.slice(0,i+1);
+    const yBlue=ED.slice(0,i+1);
+    const yGreen=T.slice(0,i+1);
+    const yPurple=C.slice(0,i+1);
+    const yDef=shortfallSeries(yGreen,yPurple);
+
+    yE=yRangeFrom(histY.concat(ED));
+    yT=yRangeFrom(T.concat(C));
+    const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
+
+    Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
+    Plotly.relayout("edPlot",layoutED(yE,kY,P.Yend));
+
+    Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
+    Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
+
+    yearLabel.textContent="Year: "+x[x.length-1];
+  }
+
+  function run(){
+    btnRun.disabled=true; btnPause.disabled=false;
+    if(timer)clearInterval(timer);
+    timer=setInterval(()=>{frameIdx+=1;if(frameIdx>=YEARS_ALL.length){pause();return;}render(frameIdx);},ms);
+  }
+
+  function pause(){
+    btnRun.disabled=false; btnPause.disabled=true;
+    if(timer)clearInterval(timer); timer=null;
+  }
+
+  function setDefaults(){
+    growth.value=DEFAULTS.growth;
+    initial.value=DEFAULTS.initial;
+    conv.value=DEFAULTS.conv;
+    present.value=DEFAULTS.present;
+    los.value=DEFAULTS.los;
+    capK.value=DEFAULTS.capK;
+    showAllK.checked=DEFAULTS.showAllK;
+    capGrowth.value=DEFAULTS.capGrowth;
+    endYear.value=DEFAULTS.endYear;
+    capLinked=true;
+    yearLabel.textContent="Year: 2014";
+    P=readParams(); showVals(P);
+  }
+
+  function recompute(){
+    if(capLinked){ capGrowth.value=growth.value; }
+    P=readParams(); showVals(P);
+    YEARS_ALL=makeYears(P.Yend);
+    ED=simulateED(P,YEARS_ALL);
+    T=computeTrolleys(P,ED);
+    C=computeCapacity(T[0],P.gCap,YEARS_ALL.length);
+    updateHistoricSeries(P);
+    frameIdx=Math.min(frameIdx,YEARS_ALL.length-1);
+    render(frameIdx);
+  }
+
+  function reset(){
+    pause();
+    setDefaults();
+    recompute();
+    frameIdx=1;
+    render(frameIdx);
+  }
+
+  function debounce(fn,d=60){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);} }
+  const debounced=debounce(recompute,50);
+  ["input","change"].forEach(evt=>{
+    growth.addEventListener(evt,debounced);
+    initial.addEventListener(evt,debounced);
+    conv.addEventListener(evt,debounced);
+    present.addEventListener(evt,debounced);
+    los.addEventListener(evt,debounced);
+    capK.addEventListener(evt,debounced);
+    showAllK.addEventListener(evt,debounced);
+    capGrowth.addEventListener(evt,()=>{capLinked=false;debounced();});
+    endYear.addEventListener(evt,debounced);
+  });
+
+  btnRun.addEventListener("click",run);
+  btnPause.addEventListener("click",pause);
+  btnReset.addEventListener("click",reset);
+
+  setDefaults();
+  render(1);
+
+  // Accordion JS
+  const accordions = document.querySelectorAll('.accordion');
+  accordions.forEach(acc => {
+    const header = acc.querySelector('.accordion-header');
+    header.addEventListener('click', () => {
+      const isOpen = acc.classList.contains('open');
+      // close others
+      accordions.forEach(a => {
+        a.classList.remove('open');
+        const chev = a.querySelector('.chevron');
+        if (chev) chev.textContent = '▶';
+      });
+      // toggle this one
+      if (!isOpen) {
+        acc.classList.add('open');
+        const chev = acc.querySelector('.chevron');
+        if (chev) chev.textContent = '▼';
+      }
+    });
+  });
 
 })();
 </script>
