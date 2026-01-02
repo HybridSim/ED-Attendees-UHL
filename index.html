@@ -104,15 +104,13 @@
     </div>
   </header>
 
-
   <div class="wrap">
-  <div class="controls">
-    <div class="control">
-      <label for="growth">Annual ED growth rate (CAGR)</label>
-      <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
-      <div class="val"><span id="growthVal">5.05%</span> / yr</div>
-    </div>
-
+    <div class="controls">
+      <div class="control">
+        <label for="growth">Annual ED growth rate (CAGR)</label>
+        <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
+        <div class="val"><span id="growthVal">5.05%</span> / yr</div>
+      </div>
       <div class="control">
         <label for="initial">Initial attendees (2014)</label>
         <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
@@ -144,8 +142,8 @@
       </div>
       <div class="control">
         <label for="capGrowth">Annual trolley capacity growth</label>
-        <input id="capGrowth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
-        <div class="val"><span id="capGrowthVal">4.6%</span> / yr</div>
+        <input id="capGrowth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
+        <div class="val"><span id="capGrowthVal">5.05%</span> / yr</div>
       </div>
       <div class="control">
         <label for="endYear">Projection end year</label>
@@ -306,15 +304,16 @@
   const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
+  // Default CAGR updated to the observed 2014–2025 CAGR (~5.05%) for BOTH growth and capacity sliders
   const DEFAULTS = {
-    growth: 0.046,
+    growth: 0.05045,
     initial: 55502,
     conv: 0.333,
     present: 152,
     los: 5,
     capK: 60000,
     showAllK: true,
-    capGrowth: 0.046,
+    capGrowth: 0.05045,
     endYear: 2075
   };
 
@@ -576,7 +575,6 @@
     setDefaults();
     recompute();
     frameIdx=0;
-    // show first projection year (2026) on reset, while label remains 2025 observed until render:
     render(0);
   }
 
@@ -599,7 +597,6 @@
   btnReset.addEventListener("click",reset);
 
   setDefaults();
-  // Initial view: show first projected year (2026) while historic includes 2025
   render(0);
 
   // Accordion JS (single-open behaviour)
@@ -626,5 +623,6 @@
 
 </body>
 </html>
+
 
 
