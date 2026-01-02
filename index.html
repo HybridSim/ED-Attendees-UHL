@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,17 +100,19 @@
       <button id="run" class="btn">▶ Run</button>
       <button id="pause" class="btn" disabled>⏸ Pause</button>
       <button id="reset" class="btn">⟲ Reset</button>
-      <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2014</span>
+      <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2025 (observed)</span>
     </div>
   </header>
 
+
   <div class="wrap">
-    <div class="controls">
-      <div class="control">
-        <label for="growth">Annual ED growth rate (CAGR)</label>
-        <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.046">
-        <div class="val"><span id="growthVal">4.60%</span> / yr</div>
-      </div>
+  <div class="controls">
+    <div class="control">
+      <label for="growth">Annual ED growth rate (CAGR)</label>
+      <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
+      <div class="val"><span id="growthVal">5.05%</span> / yr</div>
+    </div>
+
       <div class="control">
         <label for="initial">Initial attendees (2014)</label>
         <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
@@ -148,7 +149,7 @@
       </div>
       <div class="control">
         <label for="endYear">Projection end year</label>
-        <input id="endYear" type="range" min="2025" max="2075" step="1" value="2075">
+        <input id="endYear" type="range" min="2026" max="2075" step="1" value="2075">
         <div class="val"><span id="endYearVal">2075</span></div>
       </div>
     </div>
@@ -171,7 +172,7 @@
       <div class="accordion-panel">
         <ul>
           <li>This dashboard is an operational simulation of emergency care demand and capacity at University Hospital Limerick (UHL). It is intended to complement, not replace, ESRI population-based projections.</li>
-          <li>Historic UHL ED attendances (2014–2025) are used as a baseline. Future values are generated using an adjustable compound annual growth assumption.</li>
+          <li>Historic UHL ED attendances (2014–2025) are used as observed baseline. Projections begin in 2026.</li>
           <li>Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity growth is modelled separately and can be linked to or decoupled from demand growth.</li>
           <li>Dark red vertical markers indicate critical-mass thresholds (multiples of K). Markers are thinned automatically to avoid visual clutter.</li>
           <li>Projection horizon extends to 2075 to reflect the indicative lifespan of a major hospital development rather than a prediction of service configuration.</li>
@@ -238,7 +239,7 @@
       <div class="accordion-panel">
         <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is intended to complement ESRI’s regional, population-based projections by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital. ESRI projections are regional, scenario-based estimates anchored to baseline utilisation patterns and are not designed to forecast UHL attendances directly.</p>
 
-        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as a baseline for compound annual growth projection to 2075. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers, thinned to reduce clutter.</p>
+        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as observed baseline, with projections commencing from 2026. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers, thinned to reduce clutter.</p>
 
         <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand and capacity, along with a shortfall series and critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can produce persistent overcrowding and recurrent breaches of critical thresholds.</p>
 
@@ -301,6 +302,7 @@
 
 <script>
 (function(){
+  // Observed historic series includes 2025 (95,373) and must remain separate from projections
   const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
@@ -335,7 +337,9 @@
 
   const pct = v => (v*100).toFixed(1)+"%";
   const fmt = v => (+v).toLocaleString();
-  const makeYears = (end)=>{ const a=[]; for(let y=2014;y<=end;y++) a.push(y); return a; };
+
+  // Projections begin AFTER the last observed year (2025), i.e. from 2026 onwards.
+  const makeYears = (end)=>{ const a=[]; for(let y=2026;y<=end;y++) a.push(y); return a; };
 
   function readParams(){
     return {
@@ -362,9 +366,13 @@
     endYearVal.textContent=String(p.Yend);
   }
 
+  // Simulate ED attendances for years 2026..end, anchored to the observed 2025 value.
   function simulateED(p, YEARS_ALL){
-    const A=[p.A0];
-    for(let i=1;i<YEARS_ALL.length;i++) A.push(A[i-1]*(1+p.r));
+    const lastObserved = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1]; // 2025 observed
+    const A = [];
+    if (YEARS_ALL.length === 0) return A;
+    A.push(lastObserved * (1 + p.r)); // 2026
+    for(let i=1;i<YEARS_ALL.length;i++) A.push(A[i-1] * (1 + p.r));
     return A;
   }
 
@@ -418,6 +426,7 @@
 
   function yRangeFrom(arr){
     const vals=arr.filter(v=>typeof v==="number"&&isFinite(v));
+    if (!vals.length) return [0,1];
     const min=Math.min(...vals), max=Math.max(...vals);
     const span=Math.max(1,max-min);
     const pad=Math.max(1,span*0.12);
@@ -455,7 +464,7 @@
   function layoutT(range,end){
     return {
       margin:{l:54,r:10,t:6,b:36},
-      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      xaxis:{title:"Year",range:[2026,end],tickfont:{size:10},titlefont:{size:11}},
       yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},
       showlegend:true,
       legend:{orientation:'h',y:-0.25,font:{size:10}}
@@ -465,6 +474,7 @@
   let histX = YEARS_HIST.slice();
   let histY = HIST_UHL_MW_TOTAL.slice();
 
+  // Allow 2014 slider to adjust only the 2014 historic point (keeps subsequent observed values intact)
   function updateHistoricSeries(P){
     if (histX[0] === 2014) histY[0] = P.A0;
   }
@@ -484,18 +494,20 @@
   let yE = yRangeFrom(histY.concat(ED));
   let yT = yRangeFrom(T.concat(C));
 
+  // Initial plots: show all observed historic to 2025; show projection from 2026 onwards
   Plotly.newPlot("edPlot",[
     {x: histX, y: histY, name: "Historic UHL total", mode: "lines", line: {color:"#d62728",width:2}},
-    {x: [2014], y: [P.A0], name: "ED (sim)", mode: "lines", line: {color:"#1f77b4",width:3}}
+    {x: YEARS_ALL.slice(0,1), y: ED.slice(0,1), name: "ED (projection)", mode: "lines", line: {color:"#1f77b4",width:3}}
   ], layoutED(yE,kYears,P.Yend), cfg);
 
   Plotly.newPlot("trolleyPlot",[
-    {x:[2014],y:[T[0]],name:"Demand",mode:"lines",line:{color:"#2ca02c",width:3}},
-    {x:[2014],y:[C[0]],name:"Capacity",mode:"lines",line:{color:"#9467bd",width:2}},
-    {x:[2014],y:[null],name:"Shortfall (demand > capacity)",mode:"lines",line:{color:"#ff7f0e",width:0},fill:"tozeroy",fillcolor:"rgba(255,127,14,0.28)"}
+    {x: YEARS_ALL.slice(0,1), y: T.slice(0,1), name:"Demand", mode:"lines", line:{color:"#2ca02c",width:3}},
+    {x: YEARS_ALL.slice(0,1), y: C.slice(0,1), name:"Capacity", mode:"lines", line:{color:"#9467bd",width:2}},
+    {x: YEARS_ALL.slice(0,1), y: [null], name:"Shortfall (demand > capacity)", mode:"lines", line:{color:"#ff7f0e",width:0}, fill:"tozeroy", fillcolor:"rgba(255,127,14,0.28)"}
   ], layoutT(yT,P.Yend), cfg);
 
-  let frameIdx=1, timer=null, ms=120;
+  // Animation now begins at 2026 (index 0)
+  let frameIdx=0, timer=null, ms=120;
 
   function render(i){
     const x=YEARS_ALL.slice(0,i+1);
@@ -514,13 +526,17 @@
     Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
     Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
 
-    yearLabel.textContent="Year: "+x[x.length-1];
+    yearLabel.textContent="Year: "+x[x.length-1]+" (projected)";
   }
 
   function run(){
     btnRun.disabled=true; btnPause.disabled=false;
     if(timer)clearInterval(timer);
-    timer=setInterval(()=>{frameIdx+=1;if(frameIdx>=YEARS_ALL.length){pause();return;}render(frameIdx);},ms);
+    timer=setInterval(()=>{
+      frameIdx+=1;
+      if(frameIdx>=YEARS_ALL.length){ pause(); return; }
+      render(frameIdx);
+    },ms);
   }
 
   function pause(){
@@ -539,7 +555,7 @@
     capGrowth.value=DEFAULTS.capGrowth;
     endYear.value=DEFAULTS.endYear;
     capLinked=true;
-    yearLabel.textContent="Year: 2014";
+    yearLabel.textContent="Year: 2025 (observed)";
     P=readParams(); showVals(P);
   }
 
@@ -551,7 +567,7 @@
     T=computeTrolleys(P,ED);
     C=computeCapacity(T[0],P.gCap,YEARS_ALL.length);
     updateHistoricSeries(P);
-    frameIdx=Math.min(frameIdx,YEARS_ALL.length-1);
+    frameIdx=Math.min(frameIdx, Math.max(0, YEARS_ALL.length-1));
     render(frameIdx);
   }
 
@@ -559,8 +575,9 @@
     pause();
     setDefaults();
     recompute();
-    frameIdx=1;
-    render(frameIdx);
+    frameIdx=0;
+    // show first projection year (2026) on reset, while label remains 2025 observed until render:
+    render(0);
   }
 
   function debounce(fn,d=60){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);} }
@@ -582,7 +599,8 @@
   btnReset.addEventListener("click",reset);
 
   setDefaults();
-  render(1);
+  // Initial view: show first projected year (2026) while historic includes 2025
+  render(0);
 
   // Accordion JS (single-open behaviour)
   const accordions = document.querySelectorAll('.accordion');
@@ -608,4 +626,5 @@
 
 </body>
 </html>
+
 
