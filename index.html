@@ -113,7 +113,7 @@
     </div>
 
     <div class="note">
-      Capacity growth is soft-linked to ED growth until you adjust its slider. Dark-red vertical lines show every multiple of K (critical mass). Projection horizon extends to 2075 (lifespan of new hospital 50 years). Press reset before changing sliders.
+      Capacity growth is soft-linked to ED growth until you adjust its slider. Dark-red vertical lines show multiple of K (min. critical mass). Projection horizon extends to 2075 (lifespan of new hospital 50 years). Press reset before changing sliders.
     </div>
   </div>
 
@@ -140,12 +140,12 @@
     present: 152,
     los: 5,
     capK: 60000,
-    showAllK: false,     // <-- unchecked by default
+    showAllK: true,     // <-- unchecked by default
     capGrowth: 0.046,
     endYear: 2075
   };
 
-  const MAX_K_LINES = 5; // cap visible K markers to 5 (spread across years)
+  const MAX_K_LINES = 7; // cap visible K markers to 5 (spread across years)
 
   const $ = id => document.getElementById(id);
   const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
