@@ -95,7 +95,7 @@
   <header>
     <div class="brand">
       <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png" alt="MIDCARE / HSML Logo">
-      <h1>MIDCARE© Operational — UHL ED Attendees — Beta</h1>
+      <h1>MIDCARE© Operational — UHL ED Attendees</h1>
     </div>
     <div class="toolbar">
       <button id="run" class="btn">▶ Run</button>
@@ -293,7 +293,7 @@
 
 <script>
 (function(){
-  // Observed historic series 2014 to 2025
+  // Observed historic series 1014 to 2025
   const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
@@ -331,7 +331,7 @@
   const fmt = v => (+v).toLocaleString();
 
   // Projections begin AFTER the last observed year (2025), i.e. from 2026 onwards.
-  const makeYears = (end)=>{ const a=[]; for(let y=2025;y<=end;y++) a.push(y); return a; };
+  const makeYears = (end)=>{ const a=[]; for(let y=2026;y<=end;y++) a.push(y); return a; };
 
   function readParams(){
     return {
@@ -444,7 +444,7 @@
     });
     return {
       margin:{l:54,r:10,t:6,b:36},
-      xaxis:{title:"Year",range:[2026,end],tickfont:{size:10},titlefont:{size:11}},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
       yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},
       showlegend:true,
       legend:{orientation:'h',y:-0.25,font:{size:10}},
@@ -501,33 +501,25 @@
   // Animation now begins at 2026 (index 0)
   let frameIdx=0, timer=null, ms=120;
 
-  
   function render(i){
-  const xProj = YEARS_ALL.slice(0, i + 1);
-  const yProj = ED.slice(0, i + 1);
+    const x=YEARS_ALL.slice(0,i+1);
+    const yBlue=ED.slice(0,i+1);
+    const yGreen=T.slice(0,i+1);
+    const yPurple=C.slice(0,i+1);
+    const yDef=shortfallSeries(yGreen,yPurple);
 
-  const xT = xProj;
-  const yT = T.slice(0, i + 1);
-  const yC = C.slice(0, i + 1);
-  const yS = shortfallSeries(yT, yC);
+    yE=yRangeFrom(histY.concat(ED));
+    yT=yRangeFrom(T.concat(C));
+    const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
 
-  yE = yRangeFrom(histY.concat(ED));
-  yT = yRangeFrom(T.concat(C));
-  const kY = findKYears(ED, P.K, YEARS_ALL, P.showAll);
+    Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
+    Plotly.relayout("edPlot",layoutED(yE,kY,P.Yend));
 
-  Plotly.react("edPlot", [
-    { x: histX, y: histY, name: "Historic UHL total", mode: "lines", line: { color: "#d62728", width: 2 } },
-    { x: xProj, y: yProj, name: "ED (projection)", mode: "lines", line: { color: "#1f77b4", width: 3 } }
-  ], layoutED(yE, kY, P.Yend), cfg);
+    Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
+    Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
 
-  Plotly.react("trolleyPlot", [
-    { x: xT, y: yT, name: "Demand", mode: "lines", line: { color: "#2ca02c", width: 3 } },
-    { x: xT, y: yC, name: "Capacity", mode: "lines", line: { color: "#9467bd", width: 2 } },
-    { x: xT, y: yS, name: "Shortfall (demand > capacity)", mode: "lines", line: { color: "#ff7f0e", width: 0 }, fill: "tozeroy", fillcolor: "rgba(255,127,14,0.28)" }
-  ], layoutT(yT, P.Yend), cfg);
-
-  yearLabel.textContent = "Year: " + xProj[xProj.length - 1] + " (projected)";
-}
+    yearLabel.textContent="Year: "+x[x.length-1]+" (projected)";
+  }
 
   function run(){
     btnRun.disabled=true; btnPause.disabled=false;
@@ -624,8 +616,6 @@
 
 </body>
 </html>
-
-
 
 
 
