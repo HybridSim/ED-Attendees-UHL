@@ -108,7 +108,7 @@
   <div class="wrap">
     <div class="controls">
       <div class="control">
-        <label for="growth">Annual ED growth rate (CAGR)</label>
+        <label for="growth">Compound Annual Growth Rate (CAGR) ED attendees </label>
         <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
         <div class="val"><span id="growthVal">5.05%</span> / yr</div>
       </div>
@@ -123,7 +123,7 @@
         <div class="val"><span id="convVal">33.3%</span></div>
       </div>
       <div class="control">
-        <label for="present">Average presentations per day</label>
+        <label for="present">Average presentations per day (2014)</label>
         <input id="present" type="range" min="0" max="500" step="1" value="152">
         <div class="val"><span id="presentVal">152</span> per day</div>
       </div>
@@ -133,7 +133,7 @@
         <div class="val"><span id="losVal">5.0</span> days</div>
       </div>
       <div class="control">
-        <label for="capK">Critical mass / cap K (for markers)</label>
+        <label for="capK">Critical mass / cap K</label>
         <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
         <div class="val"><span id="capKVal">60,000</span> people</div>
         <div class="toggle">
@@ -183,7 +183,7 @@
           <p style="margin:0; font-size:12px;">
             HIQA analysis indicates that UHL operates with a reported emergency inpatient length of stay of approximately five days,
             an ED admission rate of around one-third of attendances, and inpatient bed occupancy persistently in excess of safe
-            operational thresholds, reflecting a sustained mismatch between demand and capacity.
+            operational thresholds.
           </p>
 
           <table>
@@ -232,7 +232,7 @@
     <!-- Accordion 2: Abstract -->
     <div class="accordion">
       <button class="accordion-header" type="button">
-        <span>Abstract – MIDCARE operational dashboard and ESRI projections</span>
+        <span>Abstract – MIDCARE Operational Dashboard</span>
         <span class="chevron">▶</span>
       </button>
       <div class="accordion-panel">
@@ -254,7 +254,7 @@
       </button>
       <div class="accordion-panel">
         <h3 style="margin:6px 0 4px 0;">A1.1 Purpose of this annex</h3>
-        <p>This annex supports interpretation of ESRI capacity projections alongside observed emergency department (ED) attendance trends at University Hospital Limerick (UHL). It is provided to ensure that operational, site-level data are interpreted consistently with the strategic evidence base used in the HIQA Mid West review.</p>
+        <p>This annex supports interpretation of ESRI capacity projections alongside observed emergency department attendance trends at UHL. It is provided to ensure that operational, site-level data are interpreted consistently with the strategic evidence base used in the HIQA Mid West review.</p>
 
         <h3 style="margin:10px 0 4px 0;">A1.2 ESRI projections: scope and intended use</h3>
         <p>The ESRI projections referenced in HIQA’s review are population-based, scenario-driven estimates intended to inform long-term planning for acute hospital capacity. They are regional planning estimates and are not designed to forecast site-specific ED attendances at UHL.</p>
@@ -293,7 +293,7 @@
         <div class="src">Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.29.</div>
 
         <h3 style="margin:10px 0 4px 0;">A1.6 Conclusion</h3>
-        <p>ESRI projections and the dashboard serve distinct but complementary purposes. Strategic planning should be informed by ESRI regional projections, while operational planning and risk management require ongoing monitoring of observed UHL ED attendances and demand–capacity mismatch at the site level.</p>
+        <p>The dashboard serves a distinct but complementary purposes to HIQA's review. Strategic planning should be informed by ESRI regional projections, while operational planning and risk management require ongoing monitoring of observed UHL ED attendances and demand–capacity mismatch at the site level.</p>
       </div>
     </div>
 
@@ -301,7 +301,7 @@
 
 <script>
 (function(){
-  // Observed historic series includes 2025 (95,373) and must remain separate from projections
+  // Observed historic series 1014 to 2025
   const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
