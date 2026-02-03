@@ -11,14 +11,13 @@
   <style>
     :root { --gap: 10px; --plot-h: 260px; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; background:#fff; }
-    header { padding: 10px 12px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+    body { margin: 0; font-family: "Poppins", system-ui, sans-serif; color:#111; background:#fff; }
+    header { padding:10px 12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; flex-wrap:wrap; }
     .brand { display:flex; align-items:center; gap:8px; }
-    .brand img { height:32px; width:auto; }
+    .brand img { height:32px; }
     .brand h1 { margin:0; font-size:16px; font-weight:600; }
     .toolbar { display:flex; gap:6px; align-items:center; font-size:12px; }
-    .btn { padding:4px 8px; border:1px solid #ddd; background:#fff; border-radius:10px; cursor:pointer; font-weight:600; }
-    .btn:disabled { opacity:.55; cursor:default; }
+    .btn { padding:4px 8px; border:1px solid #ddd; border-radius:10px; background:#fff; font-weight:600; }
     .wrap { max-width:1200px; margin:0 auto; padding:10px; }
     .controls { display:grid; grid-template-columns:repeat(4,minmax(200px,1fr)); gap:10px; }
     @media (max-width:980px){ .controls{grid-template-columns:1fr 1fr;} }
@@ -35,14 +34,11 @@
 <body>
 <header>
   <div class="brand">
-    <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png" alt="MIDCARE / HSML Logo">
+    <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png">
     <h1>MIDCARE© Operational — UHL ED Attendees</h1>
   </div>
   <div class="toolbar">
-    <button id="run" class="btn">▶ Run</button>
-    <button id="pause" class="btn" disabled>⏸ Pause</button>
-    <button id="reset" class="btn">⟲ Reset</button>
-    <span id="yearLabel"><strong>Year: 2025 (observed)</strong></span>
+    <span id="yearLabel"><strong>Observed to 2025</strong></span>
   </div>
 </header>
 
@@ -54,35 +50,10 @@
       <div class="val"><span id="growthVal"></span> / yr</div>
     </div>
     <div class="control">
-      <label>Initial attendees (2014)</label>
-      <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
-      <div class="val"><span id="initialVal"></span></div>
-    </div>
-    <div class="control">
-      <label>ED admission rate</label>
-      <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
-      <div class="val"><span id="convVal"></span></div>
-    </div>
-    <div class="control">
-      <label>Average presentations/day (2014)</label>
-      <input id="present" type="range" min="0" max="500" step="1" value="152">
-      <div class="val"><span id="presentVal"></span></div>
-    </div>
-    <div class="control">
-      <label>Length of stay (days)</label>
-      <input id="los" type="range" min="0" max="60" step="0.1" value="5">
-      <div class="val"><span id="losVal"></span></div>
-    </div>
-    <div class="control">
       <label>Critical mass K</label>
       <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
       <div class="val"><span id="capKVal"></span></div>
       <label><input id="showAllK" type="checkbox" checked> Show multiples</label>
-    </div>
-    <div class="control">
-      <label>Capacity growth</label>
-      <input id="capGrowth" type="range" min="0" max="0.15" step="0.0005" value="0.05045">
-      <div class="val"><span id="capGrowthVal"></span> / yr</div>
     </div>
     <div class="control">
       <label>End year</label>
@@ -93,7 +64,6 @@
 
   <div class="grid">
     <div id="edPlot"></div>
-    <div id="trolleyPlot"></div>
   </div>
 </div>
 
@@ -136,57 +106,63 @@ function makeYears(end){
 }
 
 function simulateED(r,years){
-  const out=[HIST[HIST.length-1]];
+  const out=[HIST[HIST.length-1]]; // 2025 anchor
   for(let i=1;i<years.length;i++) out.push(out[i-1]*(1+r));
   return out;
 }
 
 /* ---------- UI ---------- */
 
-function show(){
+const growth=$("growth"), capK=$("capK"), endYear=$("endYear"), showAllK=$("showAllK");
+const growthVal=$("growthVal"), capKVal=$("capKVal"), endYearVal=$("endYearVal");
+
+function updateLabels(){
   growthVal.textContent=pct(+growth.value);
-  initialVal.textContent=fmt(+initial.value);
-  convVal.textContent=pct(+conv.value);
-  presentVal.textContent=present.value;
-  losVal.textContent=(+los.value).toFixed(1);
   capKVal.textContent=fmt(+capK.value);
-  capGrowthVal.textContent=pct(+capGrowth.value);
   endYearVal.textContent=endYear.value;
 }
 
+/* ---------- RENDER ---------- */
+
+function render(){
+  updateLabels();
+
+  const years = makeYears(+endYear.value);
+  const ED = simulateED(+growth.value, years);
+
+  const full = fullEDSeries(YEARS_HIST, HIST, years, ED);
+  const kYears = findKYears(full.values, +capK.value, full.years, showAllK.checked);
+
+  Plotly.react("edPlot",[
+    {x:YEARS_HIST, y:HIST, mode:"lines", name:"Historic UHL total", line:{color:"#d62728",width:2}},
+    {x:years, y:ED, mode:"lines", name:"ED (projection)", line:{color:"#1f77b4",width:3}}
+  ],{
+    shapes: kYears.map(y=>({
+      type:"line",
+      x0:y,x1:y,y0:0,y1:1.2e6,
+      line:{dash:"dash",color:"rgba(139,0,0,0.8)",width:2}
+    })),
+    xaxis:{title:"Year"},
+    yaxis:{title:"People"},
+    legend:{orientation:"h",y:-0.25}
+  },{responsive:true});
+}
+
+/* ---------- EVENTS ---------- */
+
+[growth,capK,endYear,showAllK].forEach(el=>{
+  el.addEventListener("input",render);
+});
+
 /* ---------- INIT ---------- */
 
-const growth=$("growth"), initial=$("initial"), conv=$("conv"), present=$("present"),
-      los=$("los"), capK=$("capK"), capGrowth=$("capGrowth"), endYear=$("endYear"),
-      showAllK=$("showAllK");
-
-const growthVal=$("growthVal"), initialVal=$("initialVal"), convVal=$("convVal"),
-      presentVal=$("presentVal"), losVal=$("losVal"), capKVal=$("capKVal"),
-      capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
-
-show();
-
-/* ---------- COMPUTE ---------- */
-
-let years=makeYears(+endYear.value);
-let ED=simulateED(+growth.value,years);
-let full=fullEDSeries(YEARS_HIST,HIST,years,ED);
-let kYears=findKYears(full.values,+capK.value,full.years,showAllK.checked);
-
-/* ---------- PLOTS ---------- */
-
-Plotly.newPlot("edPlot",[
-  {x:YEARS_HIST,y:HIST,mode:"lines",name:"Historic",line:{color:"#d62728"}},
-  {x:years,y:ED,mode:"lines",name:"Projection",line:{color:"#1f77b4"}}
-],{
-  shapes:kYears.map(y=>({type:"line",x0:y,x1:y,y0:0,y1:1e6,line:{dash:"dash",color:"darkred"}})),
-  xaxis:{title:"Year"},yaxis:{title:"People"}
-},{responsive:true});
+render();
 
 })();
 </script>
 </body>
 </html>
+
 
 
 
