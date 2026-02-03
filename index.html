@@ -76,6 +76,7 @@
 
   <div class="grid">
     <div id="edPlot"></div>
+    <div id="trolleyPlot"></div>
   </div>
 </div>
 
@@ -85,25 +86,26 @@
 /* ---------- DATA ---------- */
 
 const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
-const HIST = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
+const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 
 /* ---------- HELPERS ---------- */
 
 const $ = id => document.getElementById(id);
-const pct = v => (v*100).toFixed(2)+"%";
+const pct = v => (v*100).toFixed(1)+"%";
 const fmt = v => (+v).toLocaleString();
 
 function fullEDSeries(hx,hy,px,py){
   return { years:hx.concat(px), values:hy.concat(py) };
 }
 
-function findKYears(values,K,years,show){
-  if(!show || K<=0) return [];
-  let hits=[], m=1, target=K;
+function findKYears(values, K, years, showAll){
+  if(!showAll || K<=0) return [];
+  const hits=[];
+  let m=1, target=K;
   for(let i=0;i<values.length;i++){
     if(values[i] >= target){
       hits.push(years[i]);
-      target = K * (++m);
+      target = K*(++m);
     }
   }
   return hits;
@@ -117,54 +119,52 @@ function makeYears(end){
   return a;
 }
 
-function simulateED(r, years){
-  const out=[];
-  let v = HIST[HIST.length-1]; // anchor at observed 2025
-  for(let i=0;i<years.length;i++){
+function simulateED(r, YEARS_ALL){
+  const lastObserved = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length-1]; // 2025
+  const A=[];
+  let v = lastObserved;
+  for(let i=0;i<YEARS_ALL.length;i++){
     v *= (1+r);
-    out.push(v);
+    A.push(v);
   }
-  return out;
+  return A;
 }
 
 /* ---------- UI ---------- */
 
 const growth=$("growth"), capK=$("capK"), endYear=$("endYear"), showAllK=$("showAllK");
 const growthVal=$("growthVal"), capKVal=$("capKVal"), endYearVal=$("endYearVal");
-const yearLabel=$("yearLabel");
 
-function updateLabels(){
-  growthVal.textContent = pct(+growth.value);
-  capKVal.textContent = fmt(+capK.value);
-  endYearVal.textContent = endYear.value;
+function updateVals(){
+  growthVal.textContent=pct(+growth.value);
+  capKVal.textContent=fmt(+capK.value);
+  endYearVal.textContent=endYear.value;
 }
 
 /* ---------- RENDER ---------- */
 
 function render(){
-  updateLabels();
+  updateVals();
 
   const YEARS_PROJ = makeYears(+endYear.value);
   const ED_PROJ = simulateED(+growth.value, YEARS_PROJ);
 
-  const full = fullEDSeries(YEARS_HIST, HIST, YEARS_PROJ, ED_PROJ);
+  const full = fullEDSeries(YEARS_HIST, HIST_UHL_MW_TOTAL, YEARS_PROJ, ED_PROJ);
   const kYears = findKYears(full.values, +capK.value, full.years, showAllK.checked);
 
   Plotly.react("edPlot",[
-    {x:YEARS_HIST, y:HIST, mode:"lines", name:"Historic UHL total", line:{color:"#d62728",width:2}},
-    {x:YEARS_PROJ, y:ED_PROJ, mode:"lines", name:"ED (projection)", line:{color:"#1f77b4",width:3}}
+    {x:YEARS_HIST, y:HIST_UHL_MW_TOTAL, name:"Historic UHL total", mode:"lines", line:{color:"#d62728",width:2}},
+    {x:YEARS_PROJ, y:ED_PROJ, name:"ED (projection)", mode:"lines", line:{color:"#1f77b4",width:3}}
   ],{
     shapes: kYears.map(y=>({
       type:"line",
       x0:y,x1:y,y0:0,y1:1.2e6,
-      line:{dash:"dash",color:"rgba(139,0,0,0.85)",width:2}
+      line:{dash:"dash",color:"rgba(139,0,0,.85)",width:2}
     })),
     xaxis:{title:"Year",range:[2014,+endYear.value]},
     yaxis:{title:"People"},
     legend:{orientation:"h",y:-0.25}
   },{responsive:true});
-
-  yearLabel.textContent = "Observed to 2025 • Projection from 2026";
 }
 
 /* ---------- EVENTS ---------- */
@@ -181,6 +181,7 @@ render();
 </script>
 </body>
 </html>
+
 
 
 
