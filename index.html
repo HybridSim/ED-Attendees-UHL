@@ -192,7 +192,7 @@
                 <th>Metric</th>
                 <th>UHL (best supported value)</th>
                 <th>Comparator / context</th>
-                <th>Source (no URLs)</th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody>
@@ -210,8 +210,8 @@
               </tr>
               <tr>
                 <td>Inpatient bed occupancy</td>
-                <td>&gt;95% (often ≥100% with escalation capacity)</td>
-                <td>Safe benchmark ≤85–90%</td>
+                <td>&gt;85% (often ≥130% with escalation capacity)</td>
+                <td>Safe benchmark ≤85–1300%</td>
                 <td>HIQA Work Stream 2 and ESRI capacity modelling context</td>
               </tr>
             </tbody>
@@ -221,14 +221,6 @@
             Note: Outputs are illustrative and intended for scenario exploration under transparent assumptions. Interpretation should take account of recognised limitations in linking ED (PET) and inpatient (HIPE) datasets and the effects of sustained system constraints.
           </p>
 
-          <div class="src">
-            <div class="quote">“It is essential that there is ongoing monitoring of actual demand for services relative to the ESRI capacity projections.”</div>
-            <div>Source: HIQA Advice to the Minister for Health (Urgent and emergency healthcare services, HSE Mid West), p.10.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Accordion 2: Abstract -->
     <div class="accordion">
       <button class="accordion-header" type="button">
@@ -236,13 +228,13 @@
         <span class="chevron">▶</span>
       </button>
       <div class="accordion-panel">
-        <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is intended to complement ESRI’s regional, population-based projections by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital. ESRI projections are regional, scenario-based estimates anchored to baseline utilisation patterns and are not designed to forecast UHL attendances directly.</p>
+        <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is intended to complement ESRI’s regional, population-based projections included in HIQA's review on UEC in the MW, by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital. ESRI projections are regional, scenario-based estimates anchored to baseline utilisation patterns and are not designed to forecast UHL attendances directly.</p>
 
-        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014–2025 are used as observed baseline, with projections commencing from 2026. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers, thinned to reduce clutter.</p>
+        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014 to 2025 are used as observed baseline, with projections commencing from 2026. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers.</p>
 
         <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand and capacity, along with a shortfall series and critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can produce persistent overcrowding and recurrent breaches of critical thresholds.</p>
 
-        <p><strong>Conclusions:</strong> This is a dynamic simulation model rather than a static workbook. By exposing assumptions and enabling scenario testing, it operationalises HIQA’s advice that ESRI projections should be interpreted alongside observed demand and site-level analyses. The dashboard is intended as decision-support to align long-term capacity planning with operational realities at UHL.</p>
+        <p><strong>Conclusions:</strong> This is a dynamic simulation model rather than a static model. By exposing assumptions and enabling scenario testing, it operationalises HIQA’s advice that ESRI projections should be interpreted alongside observed demand and site-level analyses. The dashboard is intended as decision-support to align long-term capacity planning with operational realities at UHL.</p>
       </div>
     </div>
 
