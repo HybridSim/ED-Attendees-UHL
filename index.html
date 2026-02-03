@@ -501,25 +501,33 @@
   // Animation now begins at 2026 (index 0)
   let frameIdx=0, timer=null, ms=120;
 
+  
   function render(i){
-    const x=YEARS_ALL.slice(0,i+1);
-    const yBlue=ED.slice(0,i+1);
-    const yGreen=T.slice(0,i+1);
-    const yPurple=C.slice(0,i+1);
-    const yDef=shortfallSeries(yGreen,yPurple);
+  const xProj = YEARS_ALL.slice(0, i + 1);
+  const yProj = ED.slice(0, i + 1);
 
-    yE=yRangeFrom(histY.concat(ED));
-    yT=yRangeFrom(T.concat(C));
-    const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
+  const xT = xProj;
+  const yT = T.slice(0, i + 1);
+  const yC = C.slice(0, i + 1);
+  const yS = shortfallSeries(yT, yC);
 
-    Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
-    Plotly.relayout("edPlot",layoutED(yE,kY,P.Yend));
+  yE = yRangeFrom(histY.concat(ED));
+  yT = yRangeFrom(T.concat(C));
+  const kY = findKYears(ED, P.K, YEARS_ALL, P.showAll);
 
-    Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
-    Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
+  Plotly.react("edPlot", [
+    { x: histX, y: histY, name: "Historic UHL total", mode: "lines", line: { color: "#d62728", width: 2 } },
+    { x: xProj, y: yProj, name: "ED (projection)", mode: "lines", line: { color: "#1f77b4", width: 3 } }
+  ], layoutED(yE, kY, P.Yend), cfg);
 
-    yearLabel.textContent="Year: "+x[x.length-1]+" (projected)";
-  }
+  Plotly.react("trolleyPlot", [
+    { x: xT, y: yT, name: "Demand", mode: "lines", line: { color: "#2ca02c", width: 3 } },
+    { x: xT, y: yC, name: "Capacity", mode: "lines", line: { color: "#9467bd", width: 2 } },
+    { x: xT, y: yS, name: "Shortfall (demand > capacity)", mode: "lines", line: { color: "#ff7f0e", width: 0 }, fill: "tozeroy", fillcolor: "rgba(255,127,14,0.28)" }
+  ], layoutT(yT, P.Yend), cfg);
+
+  yearLabel.textContent = "Year: " + xProj[xProj.length - 1] + " (projected)";
+}
 
   function run(){
     btnRun.disabled=true; btnPause.disabled=false;
