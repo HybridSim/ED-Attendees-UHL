@@ -26,10 +26,11 @@
     @media (max-width: 560px){ .controls{grid-template-columns: 1fr;} }
     .control { background:#fafafa; border:1px solid #eee; border-radius:10px; padding:8px; box-shadow:0 1px 2px rgba(0,0,0,.04) }
     .control label { display:block; font-weight:600; font-size:11px; margin-bottom:4px; }
-    .control input[type=range] { width:100%; height:18px; }
+    .control input[type=range], .control select { width:100%; }
+    .control input[type=range] { height: 18px; }
     .val { font-variant-numeric: tabular-nums; font-size:11px; color:#444; margin-top:2px; }
     .toggle { display:flex; align-items:center; gap:6px; font-size:11px; color:#444; margin-top:4px; }
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items:stretch; }
     @media (max-width: 980px){ .grid { grid-template-columns:1fr; } }
     #edPlot, #trolleyPlot{height:var(--plot-h)}
   </style>
@@ -38,39 +39,62 @@
 <body>
 <header>
   <div class="brand">
-    <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png">
+    <img src="https://assets.zyrosite.com/AoP61N2BR4i8Q6jl/logo-hsml-AE07eKDgMLFgWBoQ.png" alt="MIDCARE / HSML Logo">
     <h1>MIDCARE© Operational — UHL ED Attendees</h1>
   </div>
   <div class="toolbar">
     <button id="run" class="btn">▶ Run</button>
     <button id="pause" class="btn" disabled>⏸ Pause</button>
     <button id="reset" class="btn">⟲ Reset</button>
-    <span id="yearLabel" style="font-weight:600;">Year: 2025 (observed)</span>
+    <span id="yearLabel" style="margin-left:6px;font-weight:600;">Year: 2025 (observed)</span>
   </div>
 </header>
 
 <div class="wrap">
   <div class="controls">
     <div class="control">
-      <label>CAGR ED attendees</label>
-      <input id="growth" type="range" min="0" max="0.15" step="0.0005" value="0.05045">
-      <div class="val"><span id="growthVal"></span> / yr</div>
+      <label for="growth">Compound Annual Growth Rate (CAGR) ED attendees </label>
+      <input id="growth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
+      <div class="val"><span id="growthVal">5.05%</span> / yr</div>
     </div>
-
     <div class="control">
-      <label>Critical mass / cap K</label>
+      <label for="initial">Initial attendees (2014)</label>
+      <input id="initial" type="range" min="30000" max="100000" step="100" value="55502">
+      <div class="val"><span id="initialVal">55,502</span> people</div>
+    </div>
+    <div class="control">
+      <label for="conv">ED admission (conversion) rate</label>
+      <input id="conv" type="range" min="0" max="1" step="0.001" value="0.333">
+      <div class="val"><span id="convVal">33.3%</span></div>
+    </div>
+    <div class="control">
+      <label for="present">Average presentations per day</label>
+      <input id="present" type="range" min="0" max="500" step="1" value="152">
+      <div class="val"><span id="presentVal">152</span> per day</div>
+    </div>
+    <div class="control">
+      <label for="los">Average length of stay (days) — always applied</label>
+      <input id="los" type="range" min="0" max="60" step="0.1" value="5">
+      <div class="val"><span id="losVal">5.0</span> days</div>
+    </div>
+    <div class="control">
+      <label for="capK">Critical mass / cap K</label>
       <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
-      <div class="val"><span id="capKVal"></span> people</div>
+      <div class="val"><span id="capKVal">60,000</span> people</div>
       <div class="toggle">
-        <input id="showAllK" type="checkbox" checked>
-        <label>Show all multiples of K</label>
+        <input id="showAllK" type="checkbox" autocomplete="off" checked>
+        <label for="showAllK">Show all multiples of K</label>
       </div>
     </div>
-
     <div class="control">
-      <label>End year</label>
+      <label for="capGrowth">Annual trolley capacity growth</label>
+      <input id="capGrowth" type="range" min="0.00" max="0.15" step="0.0005" value="0.05045">
+      <div class="val"><span id="capGrowthVal">5.05%</span> / yr</div>
+    </div>
+    <div class="control">
+      <label for="endYear">Projection end year</label>
       <input id="endYear" type="range" min="2026" max="2075" step="1" value="2075">
-      <div class="val"><span id="endYearVal"></span></div>
+      <div class="val"><span id="endYearVal">2075</span></div>
     </div>
   </div>
 
@@ -82,103 +106,12 @@
 
 <script>
 (function(){
-
-/* ---------- DATA ---------- */
-
-const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
-const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
-
-/* ---------- HELPERS ---------- */
-
-const $ = id => document.getElementById(id);
-const pct = v => (v*100).toFixed(1)+"%";
-const fmt = v => (+v).toLocaleString();
-
-function fullEDSeries(hx,hy,px,py){
-  return { years:hx.concat(px), values:hy.concat(py) };
-}
-
-function findKYears(values, K, years, showAll){
-  if(!showAll || K<=0) return [];
-  const hits=[];
-  let m=1, target=K;
-  for(let i=0;i<values.length;i++){
-    if(values[i] >= target){
-      hits.push(years[i]);
-      target = K*(++m);
-    }
-  }
-  return hits;
-}
-
-/* ---------- MODEL ---------- */
-
-function makeYears(end){
-  const a=[];
-  for(let y=2026;y<=end;y++) a.push(y);
-  return a;
-}
-
-function simulateED(r, YEARS_ALL){
-  const lastObserved = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length-1]; // 2025
-  const A=[];
-  let v = lastObserved;
-  for(let i=0;i<YEARS_ALL.length;i++){
-    v *= (1+r);
-    A.push(v);
-  }
-  return A;
-}
-
-/* ---------- UI ---------- */
-
-const growth=$("growth"), capK=$("capK"), endYear=$("endYear"), showAllK=$("showAllK");
-const growthVal=$("growthVal"), capKVal=$("capKVal"), endYearVal=$("endYearVal");
-
-function updateVals(){
-  growthVal.textContent=pct(+growth.value);
-  capKVal.textContent=fmt(+capK.value);
-  endYearVal.textContent=endYear.value;
-}
-
-/* ---------- RENDER ---------- */
-
-function render(){
-  updateVals();
-
-  const YEARS_PROJ = makeYears(+endYear.value);
-  const ED_PROJ = simulateED(+growth.value, YEARS_PROJ);
-
-  const full = fullEDSeries(YEARS_HIST, HIST_UHL_MW_TOTAL, YEARS_PROJ, ED_PROJ);
-  const kYears = findKYears(full.values, +capK.value, full.years, showAllK.checked);
-
-  Plotly.react("edPlot",[
-    {x:YEARS_HIST, y:HIST_UHL_MW_TOTAL, name:"Historic UHL total", mode:"lines", line:{color:"#d62728",width:2}},
-    {x:YEARS_PROJ, y:ED_PROJ, name:"ED (projection)", mode:"lines", line:{color:"#1f77b4",width:3}}
-  ],{
-    shapes: kYears.map(y=>({
-      type:"line",
-      x0:y,x1:y,y0:0,y1:1.2e6,
-      line:{dash:"dash",color:"rgba(139,0,0,.85)",width:2}
-    })),
-    xaxis:{title:"Year",range:[2014,+endYear.value]},
-    yaxis:{title:"People"},
-    legend:{orientation:"h",y:-0.25}
-  },{responsive:true});
-}
-
-/* ---------- EVENTS ---------- */
-
-[growth,capK,endYear,showAllK].forEach(el=>{
-  el.addEventListener("input",render);
-});
-
-/* ---------- INIT ---------- */
-
-render();
-
+  // Observed historic series 1014 to 2025
+  const YEARS_HIST = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+  const HIST_UHL_MW_TOTAL = [55502,57297,64443,67818,69567,71315,65824,76473,79892,80113,87366,95373];
 })();
 </script>
+
 </body>
 </html>
 
