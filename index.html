@@ -331,7 +331,7 @@
   const fmt = v => (+v).toLocaleString();
 
   // Projections begin AFTER the last observed year (2025), i.e. from 2026 onwards.
-  const makeYears = (end)=>{ const a=[]; for(let y=2026;y<=end;y++) a.push(y); return a; };
+  const makeYears = (end)=>{ const a=[]; for(let y=2025;y<=end;y++) a.push(y); return a; };
 
   function readParams(){
     return {
