@@ -1,9 +1,11 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MIDCARE© Operational — UHL ED Attendees</title>
+  <title>MIDCARE© Operational (beta) — UHL ED Attendees</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
@@ -596,33 +598,32 @@
   btnPause.addEventListener("click",pause);
   btnReset.addEventListener("click",reset);
 
-  setDefaults();
-  render(0);
 
-  // Accordion JS (single-open behaviour)
-  const accordions = document.querySelectorAll('.accordion');
-  accordions.forEach(acc => {
-    const header = acc.querySelector('.accordion-header');
-    header.addEventListener('click', () => {
-      const isOpen = acc.classList.contains('open');
-      accordions.forEach(a => {
-        a.classList.remove('open');
-        const chev = a.querySelector('.chevron');
-        if (chev) chev.textContent = '▶';
-      });
-      if (!isOpen) {
-        acc.classList.add('open');
-        const chev = acc.querySelector('.chevron');
-        if (chev) chev.textContent = '▼';
-      }
-    });
+setDefaults();
+render(0);
+
+// Accordion JS (single-open behaviour, NO arrow mutation)
+const accordions = document.querySelectorAll('.accordion');
+
+accordions.forEach(acc => {
+  const header = acc.querySelector('.accordion-header');
+  header.addEventListener('click', () => {
+    const isOpen = acc.classList.contains('open');
+
+    accordions.forEach(a => a.classList.remove('open'));
+
+    if (!isOpen) acc.classList.add('open');
   });
+});
 
-})();
-</script>
+  
 
 </body>
 </html>
+
+
+
+
 
 
 
