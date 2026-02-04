@@ -386,15 +386,15 @@
     return T.map((v,i)=> (v>C[i] ? v : null));
   }
 
-function findKYears(ED, K, YEARS_ALL, showAll){
+
+
+  function findKYears(ED, K, YEARS_ALL, showAll){
   if (!showAll || K <= 0) return [];
 
   const hits = [];
 
-  // last observed ED attendance (2025)
   const LAST_OBS = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1];
 
-  // start at first multiple of K ABOVE last observed
   let m = Math.floor(LAST_OBS / K) + 1;
   let target = K * m;
 
@@ -406,23 +406,12 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     }
   }
 
-  // keep existing thinning logic
-  if (hits.length <= MAX_K_LINES) return hits;
-
-  const span = hits[hits.length - 1] - hits[0];
-  const minGap = span / (MAX_K_LINES - 1);
-  const picked = [hits[0]];
-  let last = hits[0];
-
-  for (let i = 1; i < hits.length && picked.length < MAX_K_LINES - 1; i++) {
-    if (hits[i] - last >= minGap) {
-      picked.push(hits[i]);
-      last = hits[i];
-    }
-  }
-  picked[picked.length - 1] = hits[hits.length - 1];
-  return picked;
+  return hits; // ← NO thinning
 }
+
+
+
+  
 
 
   const cfg={responsive:true, displaylogo:false};
