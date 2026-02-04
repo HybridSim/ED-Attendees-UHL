@@ -388,27 +388,34 @@
 
 
 
-  function findKYears(ED, K, YEARS_ALL, showAll){
+function findKYears(ED, K, YEARS_ALL, showAll){
   if (!showAll || K <= 0) return [];
 
   const hits = [];
 
+  const lastYear = 2025;
   const LAST_OBS = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1];
+  const r = P.r; // CAGR
 
+  // first future multiple of K
   let m = Math.floor(LAST_OBS / K) + 1;
-  let target = K * m;
 
-    for (let i = 0; i < ED.length; i++) {
-  while (ED[i] >= target) {
-    hits.push(YEARS_ALL[i]);
+  while (true) {
+    const target = K * m;
+
+    // solve: LAST_OBS * (1+r)^t = target
+    const t = Math.log(target / LAST_OBS) / Math.log(1 + r);
+    const year = lastYear + t;
+
+    if (year > P.Yend) break;
+
+    hits.push(Math.round(year));
     m++;
-    target = K * m;
   }
+
+  return hits;
 }
 
-
-  return hits; // ← NO thinning
-}
 
 
 
