@@ -398,13 +398,14 @@
   let m = Math.floor(LAST_OBS / K) + 1;
   let target = K * m;
 
-  for (let i = 0; i < ED.length; i++) {
-    if (ED[i] >= target) {
-      hits.push(YEARS_ALL[i]);
-      m++;
-      target = K * m;
-    }
+    for (let i = 0; i < ED.length; i++) {
+  while (ED[i] >= target) {
+    hits.push(YEARS_ALL[i]);
+    m++;
+    target = K * m;
   }
+}
+
 
   return hits; // ← NO thinning
 }
