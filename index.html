@@ -387,34 +387,26 @@
   }
 
 
-
 function findKYears(ED, K, YEARS_ALL, showAll){
   if (!showAll || K <= 0) return [];
 
   const hits = [];
 
-  const lastYear = 2025;
+  // start at the first multiple of K ABOVE the last observed year
   const LAST_OBS = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1];
-  const r = P.r; // CAGR
+  let nextBand = Math.ceil(LAST_OBS / K) * K;
 
-  // first future multiple of K
-  let m = Math.floor(LAST_OBS / K) + 1;
-
-  while (true) {
-    const target = K * m;
-
-    // solve: LAST_OBS * (1+r)^t = target
-    const t = Math.log(target / LAST_OBS) / Math.log(1 + r);
-    const year = lastYear + t;
-
-    if (year > P.Yend) break;
-
-    hits.push(Math.round(year));
-    m++;
+  for (let i = 0; i < ED.length; i++) {
+    if (ED[i] >= nextBand) {
+      hits.push(YEARS_ALL[i]);
+      nextBand += K; // move to the next 60k band
+    }
   }
 
   return hits;
 }
+
+  
 
 
 
