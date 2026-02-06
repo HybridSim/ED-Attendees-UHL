@@ -513,7 +513,14 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
 
     Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
-    Plotly.relayout("edPlot",layoutED(yE,kY,P.Yend));
+
+
+    Plotly.relayout("edPlot", {
+  ...layoutED(yE, kY, P.Yend),
+  shapes: layoutED(yE, kY, P.Yend).shapes,
+  annotations: layoutED(yE, kY, P.Yend).annotations
+});
+
 
     Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
     Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
