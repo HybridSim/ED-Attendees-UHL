@@ -392,14 +392,16 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 
   const hits = [];
 
-  // start at the first multiple of K ABOVE the last observed year
   const LAST_OBS = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1];
   let nextBand = Math.ceil(LAST_OBS / K) * K;
 
   for (let i = 0; i < ED.length; i++) {
     if (ED[i] >= nextBand) {
       hits.push(YEARS_ALL[i]);
-      nextBand += K; // move to the next 60k band
+      nextBand += K;
+
+      // 🔒 hard cap on number of vertical lines
+      if (hits.length >= MAX_K_LINES) break;
     }
   }
 
@@ -407,6 +409,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 }
 
   
+
 
 
 
@@ -510,6 +513,8 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 
     yE=yRangeFrom(histY.concat(ED));
     yT=yRangeFrom(T.concat(C));
+    
+    
     const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
 
     Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
@@ -522,6 +527,8 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 });
 
 
+
+    
     Plotly.restyle("trolleyPlot",{x:[x,x,x],y:[yGreen,yPurple,yDef]});
     Plotly.relayout("trolleyPlot",layoutT(yT,P.Yend));
 
@@ -623,3 +630,5 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 
 </body>
 </html>
+
+  
