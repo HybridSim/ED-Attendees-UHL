@@ -175,7 +175,7 @@
           <li>Historic UHL ED attendances (2014–2025) are used as observed baseline. Projections begin in 2026.</li>
           <li>Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Acute bed capacity growth is modelled separately and can be linked to or decoupled from demand growth.</li>
           <li>Dark red vertical markers indicate critical-mass thresholds (multiples of K), increments of demand equal to K beyond the last observed ED attendance, identifying step-changes in scale rather than precise capacity limits. </li>
-          <li>Projection horizon extends to 2075 to illustrate long-run system behaviour; critical-mass thresholds are shown only within the strategic planning horizon to avoid over-interpretation of long-run exponential effects.</li>
+          <li>Projection horizon extends to 2075 to illustrate long-run system behaviour; critical-mass thresholds are shown only within a strategic planning horizon to 2050 to avoid over-interpretation of long-run exponential effects.</li>
         </ul>
 
         <div class="kpi">
@@ -230,7 +230,7 @@
       <div class="accordion-panel">
         <p><strong>Background:</strong> The operational MIDCARE model provides a site-specific, dynamic view of emergency care demand and trolley pressure at UHL. It is intended to complement ESRI’s regional, population-based projections included in HIQA's review on UEC in the MW, by making key assumptions explicit and enabling scenario exploration at the level of a single Model 4 hospital. ESRI projections are regional, scenario-based estimates anchored to baseline utilisation patterns and are not designed to forecast UHL attendances directly.</p>
 
-        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014 to 2025 are used as observed baseline, with projections commencing from 2026. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers.</p>
+        <p><strong>Methods:</strong> Historic ED attendance data for UHL from 2014 to 2025 are used as observed baseline, with projections commencing from 2026. Trolley demand is derived from ED attendances, an ED admission (conversion) rate and average length of stay. Capacity is modelled as a separate growth process and can be linked to or decoupled from demand growth. Critical mass thresholds (multiples of K) are identified and displayed as vertical markers to 2050.</p>
 
         <p><strong>Results:</strong> The model generates projected trajectories for ED attendances, trolley demand and capacity, along with a shortfall series and critical-mass crossing years. For plausible parameter settings, the dashboard illustrates how compounded demand growth and constrained capacity can produce persistent overcrowding and recurrent breaches of critical thresholds.</p>
 
@@ -311,7 +311,7 @@
   };
 
 
-const K_LINE_END_YEAR = 2040; // policy-relevant horizon
+const K_LINE_END_YEAR = 2050; // policy-relevant horizon
 
 
 
