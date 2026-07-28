@@ -1,3 +1,4 @@
+  
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,12 +134,16 @@
         <div class="val"><span id="losVal">5.0</span> days</div>
       </div>
       <div class="control">
-        <label for="capK">Critical mass / cap K</label>
+        <label for="capK">Primary critical mass / cap K</label>
         <input id="capK" type="range" min="0" max="150000" step="1000" value="60000">
         <div class="val"><span id="capKVal">60,000</span> people</div>
         <div class="toggle">
           <input id="showAllK" type="checkbox" autocomplete="off" checked>
-          <label for="showAllK">Show all multiples of K</label>
+          <label for="showAllK">Show primary K markers (max 4)</label>
+        </div>
+        <div class="toggle">
+          <input id="showK150" type="checkbox" autocomplete="off" checked>
+          <label for="showK150">Show 150,000 critical-mass markers (max 4)</label>
         </div>
       </div>
       <div class="control">
@@ -312,6 +317,7 @@
     los: 5,
     capK: 60000,
     showAllK: true,
+    showK150: true,
     capGrowth: 0.05045,
     endYear: 2075
   };
@@ -331,6 +337,7 @@ const K_LINE_END_YEAR = 2050; // policy-relevant horizon
         capGrowthVal=$("capGrowthVal"), endYearVal=$("endYearVal");
 
   const showAllK=$("showAllK");
+  const showK150=$("showK150");
   const yearLabel=$("yearLabel");
   const btnRun=$("run"), btnPause=$("pause"), btnReset=$("reset");
 
@@ -351,6 +358,7 @@ const K_LINE_END_YEAR = 2050; // policy-relevant horizon
       LOS: +los.value,
       K: +capK.value,
       showAll: showAllK.checked,
+      show150: showK150.checked,
       gCap: +capGrowth.value,
       Yend: parseInt(endYear.value,10)
     };
@@ -396,26 +404,53 @@ const K_LINE_END_YEAR = 2050; // policy-relevant horizon
   }
 
 
-function findKYears(ED, K, YEARS_ALL, showAll){
-  if (!showAll || K <= 0) return [];
+const MAX_MARKERS_PER_K = 4;
 
-  const hits = [];
+function thinEvents(events, maxMarkers = MAX_MARKERS_PER_K){
+  if (events.length <= maxMarkers) return events;
+  const out = [];
+  for (let i = 0; i < maxMarkers; i++) {
+    const idx = Math.round(i * (events.length - 1) / (maxMarkers - 1));
+    if (!out.length || out[out.length - 1].year !== events[idx].year) out.push(events[idx]);
+  }
+  return out;
+}
+
+function findKEvents(ED, K, YEARS_ALL, enabled, family){
+  if (!enabled || K <= 0) return [];
+
+  const raw = [];
   const LAST_OBS = HIST_UHL_MW_TOTAL[HIST_UHL_MW_TOTAL.length - 1];
   let nextBand = Math.ceil(LAST_OBS / K) * K;
 
   for (let i = 0; i < ED.length; i++) {
     const yr = YEARS_ALL[i];
-
-    // stop generating K lines beyond policy horizon
     if (yr > K_LINE_END_YEAR) break;
 
+    // A high CAGR can cross several multiples in one year. Record that year once.
     if (ED[i] >= nextBand) {
-      hits.push(yr);
-      nextBand += K;
+      raw.push({year: yr, threshold: nextBand, family});
+      while (ED[i] >= nextBand) nextBand += K;
     }
   }
 
-  return hits;
+  return thinEvents(raw);
+}
+
+function getCriticalEvents(ED, P, YEARS_ALL){
+  const primary = findKEvents(ED, P.K, YEARS_ALL, P.showAll, 'primary');
+  const k150 = findKEvents(ED, 150000, YEARS_ALL, P.show150, '150k');
+
+  // Merge markers that happen in the same year so only one vertical line is drawn.
+  const byYear = new Map();
+  [...primary, ...k150].forEach(ev => {
+    if (!byYear.has(ev.year)) byYear.set(ev.year, {...ev, families:[ev.family]});
+    else {
+      const existing = byYear.get(ev.year);
+      if (!existing.families.includes(ev.family)) existing.families.push(ev.family);
+    }
+  });
+  return [...byYear.values()].sort((a,b)=>a.year-b.year);
 }
 
   
@@ -438,26 +473,31 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     return [Math.max(0,min-pad),max+pad];
   }
 
-  function layoutED(range,kYears,end){
+  function layoutED(range,kEvents,end){
     const shapes=[],ann=[];
-    kYears.forEach(yr=>{
+    kEvents.forEach(ev=>{
+      const is150Only = ev.families && ev.families.length === 1 && ev.families[0] === '150k';
+      const lineColor = is150Only ? 'rgba(31,78,121,.85)' : 'rgba(139,0,0,.82)';
+      const label = ev.families && ev.families.length > 1 ? `${ev.year} • 60K/150K` : (is150Only ? `${ev.year} • 150K` : String(ev.year));
       shapes.push({
         type:'line',
-        x0:yr,x1:yr,y0:range[0],y1:range[1],
-        line:{color:'rgba(139,0,0,.8)',width:2,dash:'dash'}
+        x0:ev.year,x1:ev.year,y0:range[0],y1:range[1],
+        line:{color:lineColor,width:2,dash:is150Only?'dot':'dash'}
       });
       ann.push({
-        x:yr,
+        x:ev.year,
         y:range[1]-((range[1]-range[0])*0.04),
-        text:String(yr),
+        text:label,
+        textangle:-90,
         yanchor:'top',
+        xanchor:'right',
         showarrow:false,
-        font:{size:10,color:'rgba(139,0,0,.9)'}
+        font:{size:9,color:lineColor}
       });
     });
     return {
       margin:{l:54,r:10,t:6,b:36},
-      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11}},
+      xaxis:{title:"Year",range:[2014,end],tickfont:{size:10},titlefont:{size:11},showgrid:false,zeroline:false},
       yaxis:{title:"People",range,tickfont:{size:10},titlefont:{size:11}},
       showlegend:true,
       legend:{orientation:'h',y:-0.25,font:{size:10}},
@@ -469,7 +509,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
   function layoutT(range,end){
     return {
       margin:{l:54,r:10,t:6,b:36},
-      xaxis:{title:"Year",range:[2026,end],tickfont:{size:10},titlefont:{size:11}},
+      xaxis:{title:"Year",range:[2026,end],tickfont:{size:10},titlefont:{size:11},showgrid:false,zeroline:false},
       yaxis:{title:"Trolleys (Cubicles)",range,tickfont:{size:10},titlefont:{size:11}},
       showlegend:true,
       legend:{orientation:'h',y:-0.25,font:{size:10}}
@@ -485,6 +525,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
   }
 
   showAllK.checked = DEFAULTS.showAllK;
+  showK150.checked = DEFAULTS.showK150;
   let P = readParams();
   showVals(P);
 
@@ -495,7 +536,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
 
   updateHistoricSeries(P);
 
-  let kYears = findKYears(ED,P.K,YEARS_ALL,P.showAll);
+  let kYears = getCriticalEvents(ED,P,YEARS_ALL);
   let yE = yRangeFrom(histY.concat(ED));
   let yT = yRangeFrom(T.concat(C));
 
@@ -525,7 +566,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     yT=yRangeFrom(T.concat(C));
     
     
-    const kY=findKYears(ED,P.K,YEARS_ALL,P.showAll);
+    const kY=getCriticalEvents(ED,P,YEARS_ALL);
 
     Plotly.restyle("edPlot",{x:[histX,x],y:[histY,yBlue]});
 
@@ -568,6 +609,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     los.value=DEFAULTS.los;
     capK.value=DEFAULTS.capK;
     showAllK.checked=DEFAULTS.showAllK;
+    showK150.checked=DEFAULTS.showK150;
     capGrowth.value=DEFAULTS.capGrowth;
     endYear.value=DEFAULTS.endYear;
     capLinked=true;
@@ -605,6 +647,7 @@ function findKYears(ED, K, YEARS_ALL, showAll){
     los.addEventListener(evt,debounced);
     capK.addEventListener(evt,debounced);
     showAllK.addEventListener(evt,debounced);
+    showK150.addEventListener(evt,debounced);
     capGrowth.addEventListener(evt,()=>{capLinked=false;debounced();});
     endYear.addEventListener(evt,debounced);
   });
